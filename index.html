@@ -11,42 +11,31 @@
     :root {
       --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-
       --bg-primary: #f8f7f4;
       --bg-secondary: #ffffff;
       --bg-tertiary: #eceae4;
       --bg-card: #ffffff;
       --bg-card-hover: #f5f3ee;
-
       --text-primary: #1a1a18;
       --text-secondary: #5c5c56;
       --text-tertiary: #8a8a82;
-
       --border-primary: #e0ddd6;
       --border-secondary: #eceae4;
-
       --accent-green: #2d8a6e;
       --accent-green-light: #e8f5f0;
       --accent-green-glow: rgba(45, 138, 110, 0.15);
       --accent-brown: #8b7355;
-      --accent-cream: #f5f0e6;
-
       --freq-high: #2d8a6e;
       --freq-med: #b8860b;
       --freq-low: #7a7a72;
-
       --diff-easy: #4a7bc7;
       --diff-med: #c75a9a;
       --diff-hard: #c75050;
-
       --radius-sm: 8px;
       --radius-md: 12px;
       --radius-lg: 16px;
-      --radius-xl: 20px;
-
       --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
       --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
-      --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -56,39 +45,27 @@
         --bg-tertiary: #2d2e29;
         --bg-card: #262824;
         --bg-card-hover: #2e2f2a;
-
         --text-primary: #f0f0ec;
         --text-secondary: #a8a8a0;
         --text-tertiary: #6b6b63;
-
         --border-primary: #3a3a36;
         --border-secondary: #2d2e29;
-
         --accent-green: #4db894;
         --accent-green-light: rgba(77, 184, 148, 0.12);
         --accent-green-glow: rgba(77, 184, 148, 0.2);
         --accent-brown: #c4a77d;
-        --accent-cream: #3a3832;
-
         --freq-high: #4db894;
         --freq-med: #d4a029;
         --freq-low: #8a8a82;
-
         --diff-easy: #6b9bd4;
         --diff-med: #e076b5;
         --diff-hard: #e07070;
-
         --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
         --shadow-md: 0 4px 16px rgba(0,0,0,0.25);
-        --shadow-lg: 0 8px 32px rgba(0,0,0,0.3);
       }
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: var(--font-body);
@@ -97,56 +74,92 @@
       min-height: 100vh;
       font-size: 15px;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
-    /* Subtle nature-inspired background */
+    /* ── Animated nature background ── */
     .bg {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       pointer-events: none;
       z-index: 0;
+      overflow: hidden;
     }
 
     .bg::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       background:
         radial-gradient(ellipse 100% 80% at 0% 0%, var(--accent-green-light) 0%, transparent 50%),
-        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(139, 115, 85, 0.08) 0%, transparent 40%);
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(139,115,85,0.08) 0%, transparent 40%);
     }
 
-    /* Main container */
+    /* Floating leaf particles */
+    .leaf {
+      position: absolute;
+      opacity: 0;
+      animation: leafFall linear infinite;
+      font-size: 14px;
+      filter: blur(0px);
+      user-select: none;
+    }
+
+    @keyframes leafFall {
+      0%   { opacity: 0; transform: translateY(-40px) rotate(0deg) translateX(0px); }
+      10%  { opacity: 0.35; }
+      80%  { opacity: 0.2; }
+      100% { opacity: 0; transform: translateY(100vh) rotate(720deg) translateX(60px); }
+    }
+
+    /* Gentle sway on the bg gradients */
+    .bg-sway {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 40% 30% at 70% 30%, rgba(45,138,110,0.06) 0%, transparent 60%);
+      animation: sway 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes sway {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(20px, -10px) scale(1.05); }
+    }
+
+    /* ── Layout ── */
     .app {
       position: relative;
       z-index: 1;
       max-width: 1000px;
       margin: 0 auto;
-      padding: 40px 24px 60px;
+      padding: 40px 24px 80px;
     }
 
-    /* Header */
+    /* ── Header ── */
     .header {
       text-align: center;
-      margin-bottom: 40px;
-      animation: fadeIn 0.6s ease-out;
+      margin-bottom: 36px;
+      animation: fadeUp 0.7s ease-out both;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--accent-green);
+      background: var(--accent-green-light);
+      border: 1px solid var(--accent-green-glow);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      letter-spacing: 0.04em;
     }
 
     .header h1 {
-      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-size: clamp(1.75rem, 4vw, 2.4rem);
       font-weight: 700;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       margin-bottom: 8px;
       color: var(--text-primary);
     }
@@ -156,12 +169,51 @@
       font-size: 0.95rem;
     }
 
-    /* Subject tabs */
+    /* Progress summary bar */
+    .progress-summary {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      animation: fadeUp 0.7s ease-out 0.1s both;
+    }
+
+    .prog-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border-primary);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .prog-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .prog-dot.done  { background: var(--freq-high); }
+    .prog-dot.wip   { background: var(--freq-med); }
+    .prog-dot.todo  { background: var(--border-primary); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Tabs ── */
     .tabs-container {
       display: flex;
       justify-content: center;
-      margin-bottom: 24px;
-      animation: fadeIn 0.6s ease-out 0.1s both;
+      margin-bottom: 20px;
+      animation: fadeUp 0.7s ease-out 0.15s both;
     }
 
     .tabs {
@@ -190,10 +242,7 @@
       gap: 6px;
     }
 
-    .tab:hover {
-      color: var(--text-primary);
-      background: var(--bg-tertiary);
-    }
+    .tab:hover { color: var(--text-primary); background: var(--bg-tertiary); }
 
     .tab.active {
       background: var(--accent-green);
@@ -201,17 +250,15 @@
       box-shadow: var(--shadow-sm);
     }
 
-    /* Subtabs */
+    /* ── Subtabs ── */
     #subtabs {
       display: none;
       justify-content: center;
       margin-bottom: 20px;
-      animation: fadeIn 0.6s ease-out 0.15s both;
+      animation: fadeUp 0.5s ease-out both;
     }
 
-    #subtabs.visible {
-      display: flex;
-    }
+    #subtabs.visible { display: flex; }
 
     .subtabs {
       display: flex;
@@ -234,9 +281,7 @@
       transition: all 0.2s ease;
     }
 
-    .stab:hover {
-      color: var(--text-secondary);
-    }
+    .stab:hover { color: var(--text-secondary); }
 
     .stab.active {
       background: var(--bg-tertiary);
@@ -244,18 +289,17 @@
       font-weight: 500;
     }
 
-    /* Filters */
+    /* ── Filters ── */
     .filters-container {
       margin-bottom: 28px;
-      animation: fadeIn 0.6s ease-out 0.2s both;
+      animation: fadeUp 0.7s ease-out 0.2s both;
     }
 
     .filters {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: column;
+      gap: 10px;
       align-items: center;
-      justify-content: center;
       padding: 14px 18px;
       background: var(--bg-card);
       border-radius: var(--radius-lg);
@@ -263,17 +307,16 @@
       box-shadow: var(--shadow-sm);
     }
 
-    .filter-group {
+    .filters-row {
       display: flex;
-      gap: 5px;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
     }
 
-    .filter-divider {
-      width: 1px;
-      height: 20px;
-      background: var(--border-secondary);
-      margin: 0 6px;
-    }
+    .filter-group { display: flex; gap: 5px; }
+    .filter-divider { width: 1px; height: 20px; background: var(--border-secondary); margin: 0 6px; }
 
     .filter-btn {
       padding: 5px 14px;
@@ -287,63 +330,22 @@
       transition: all 0.2s ease;
     }
 
-    .filter-btn:hover {
-      border-color: var(--border-primary);
-      color: var(--text-secondary);
-    }
+    .filter-btn:hover { border-color: var(--border-primary); color: var(--text-secondary); }
+    .filter-btn.on { border-color: transparent; font-weight: 500; }
+    .filter-btn.f-all.on { background: var(--bg-tertiary); color: var(--text-primary); }
+    .filter-btn.f-high.on { background: var(--accent-green-light); color: var(--freq-high); border-color: var(--accent-green-glow); }
+    .filter-btn.f-med.on  { background: rgba(255,176,32,0.12); color: var(--freq-med); border-color: rgba(255,176,32,0.25); }
+    .filter-btn.f-low.on  { background: rgba(122,122,114,0.12); color: var(--freq-low); border-color: rgba(122,122,114,0.2); }
+    .filter-btn.d-easy.on { background: rgba(74,123,199,0.12); color: var(--diff-easy); border-color: rgba(74,123,199,0.2); }
+    .filter-btn.d-med.on  { background: rgba(199,90,154,0.12); color: var(--diff-med); border-color: rgba(199,90,154,0.2); }
+    .filter-btn.d-hard.on { background: rgba(199,80,80,0.12); color: var(--diff-hard); border-color: rgba(199,80,80,0.2); }
 
-    .filter-btn.on {
-      border-color: transparent;
-      font-weight: 500;
-    }
+    /* Status filter */
+    .filter-btn.s-done.on { background: var(--accent-green-light); color: var(--freq-high); border-color: var(--accent-green-glow); }
+    .filter-btn.s-wip.on  { background: rgba(255,176,32,0.12); color: var(--freq-med); border-color: rgba(255,176,32,0.25); }
+    .filter-btn.s-todo.on { background: rgba(122,122,114,0.12); color: var(--freq-low); border-color: rgba(122,122,114,0.2); }
 
-    .filter-btn.f-all.on {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-    }
-
-    .filter-btn.f-high.on {
-      background: var(--accent-green-light);
-      color: var(--freq-high);
-      border-color: var(--accent-green-glow);
-    }
-
-    .filter-btn.f-med.on {
-      background: rgba(255, 176, 32, 0.12);
-      color: var(--freq-med);
-      border-color: rgba(255, 176, 32, 0.25);
-    }
-
-    .filter-btn.f-low.on {
-      background: rgba(122, 122, 114, 0.12);
-      color: var(--freq-low);
-      border-color: rgba(122, 122, 114, 0.2);
-    }
-
-    .filter-btn.f-easy.on,
-    .filter-btn.d-easy.on {
-      background: rgba(74, 123, 199, 0.12);
-      color: var(--diff-easy);
-      border-color: rgba(74, 123, 199, 0.2);
-    }
-
-    .filter-btn.f-hard.on,
-    .filter-btn.d-hard.on {
-      background: rgba(199, 80, 80, 0.12);
-      color: var(--diff-hard);
-      border-color: rgba(199, 80, 80, 0.2);
-    }
-
-    .filter-btn.d-med.on {
-      background: rgba(199, 90, 154, 0.12);
-      color: var(--diff-med);
-      border-color: rgba(199, 90, 154, 0.2);
-    }
-
-    .search-wrapper {
-      position: relative;
-      margin-left: auto;
-    }
+    .search-wrapper { position: relative; width: 100%; max-width: 340px; }
 
     .search {
       padding: 7px 14px 7px 36px;
@@ -353,19 +355,13 @@
       color: var(--text-primary);
       font-family: var(--font-body);
       font-size: 0.8rem;
-      width: 160px;
+      width: 100%;
       outline: none;
       transition: all 0.2s ease;
     }
 
-    .search:focus {
-      border-color: var(--accent-green);
-      background: var(--bg-card);
-    }
-
-    .search::placeholder {
-      color: var(--text-tertiary);
-    }
+    .search:focus { border-color: var(--accent-green); background: var(--bg-card); }
+    .search::placeholder { color: var(--text-tertiary); }
 
     .search-icon {
       position: absolute;
@@ -377,7 +373,7 @@
       pointer-events: none;
     }
 
-    /* Count */
+    /* ── Count ── */
     .count {
       text-align: center;
       font-size: 0.8rem;
@@ -386,92 +382,116 @@
       font-family: var(--font-mono);
     }
 
-    /* Chapter list */
-    #list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    /* ── Chapter list ── */
+    #list { display: flex; flex-direction: column; gap: 4px; }
 
     .section-head {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
       color: var(--text-tertiary);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-      margin: 20px 0 10px;
-      padding-left: 2px;
-    }
-
-    .section-head:first-child {
-      margin-top: 0;
-    }
-
-    .row {
+      margin: 22px 0 8px;
+      padding-left: 4px;
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 12px 16px;
+      gap: 8px;
+    }
+
+    .section-head::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-secondary);
+    }
+
+    .section-head:first-child { margin-top: 0; }
+
+    /* ── Row (chapter card) ── */
+    .row {
       background: var(--bg-card);
       border-radius: var(--radius-md);
       border: 1px solid var(--border-secondary);
-      transition: all 0.2s ease;
-      animation: slideIn 0.3s ease-out both;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      animation: slideIn 0.35s ease-out both;
+      overflow: hidden;
     }
 
     @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-8px); }
-      to { opacity: 1; transform: translateX(0); }
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    .row:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-primary);
-      box-shadow: var(--shadow-sm);
+    .row:hover { border-color: var(--border-primary); box-shadow: var(--shadow-sm); }
+    .row.hidden { display: none; }
+
+    /* Status accent on left edge */
+    .row.status-done { border-left: 3px solid var(--freq-high); }
+    .row.status-wip  { border-left: 3px solid var(--freq-med); }
+
+    /* ── Row header (always visible) ── */
+    .row-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      cursor: pointer;
+      user-select: none;
     }
 
-    .row.hidden {
-      display: none;
-    }
+    .row-header:hover { background: var(--bg-card-hover); }
 
     .num {
       font-family: var(--font-mono);
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: var(--text-tertiary);
-      min-width: 24px;
+      min-width: 22px;
       text-align: center;
     }
 
+    /* Status toggle button */
+    .status-btn {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-primary);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+      padding: 0;
+    }
+
+    .status-btn:hover { border-color: var(--accent-green); }
+    .status-btn.done { background: var(--freq-high); border-color: var(--freq-high); color: #fff; }
+    .status-btn.wip  { background: var(--freq-med);  border-color: var(--freq-med);  color: #fff; }
+    .status-btn.todo { color: var(--text-tertiary); }
+
     .name {
       flex: 1;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-primary);
       font-weight: 500;
-      line-height: 1.4;
+      line-height: 1.35;
     }
 
     .bar-bg {
-      width: 80px;
-      height: 5px;
+      width: 70px; height: 4px;
       background: var(--bg-tertiary);
       border-radius: 3px;
       overflow: hidden;
       flex-shrink: 0;
     }
 
-    .bar-fill {
-      height: 100%;
-      border-radius: 3px;
-    }
+    .bar-fill { height: 100%; border-radius: 3px; }
 
-    .badges {
-      display: flex;
-      gap: 5px;
-      flex-shrink: 0;
-    }
+    .badges { display: flex; gap: 5px; flex-shrink: 0; }
 
     .badge {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       padding: 3px 8px;
       border-radius: 10px;
       font-weight: 600;
@@ -480,405 +500,1119 @@
     }
 
     .fh { background: var(--accent-green-light); color: var(--freq-high); }
-    .fm { background: rgba(255, 176, 32, 0.12); color: var(--freq-med); }
-    .fl { background: rgba(122, 122, 114, 0.12); color: var(--freq-low); }
+    .fm { background: rgba(255,176,32,0.12); color: var(--freq-med); }
+    .fl { background: rgba(122,122,114,0.12); color: var(--freq-low); }
+    .de { background: rgba(74,123,199,0.12); color: var(--diff-easy); }
+    .dm { background: rgba(199,90,154,0.12); color: var(--diff-med); }
+    .dh { background: rgba(199,80,80,0.12); color: var(--diff-hard); }
 
-    .de { background: rgba(74, 123, 199, 0.12); color: var(--diff-easy); }
-    .dm { background: rgba(199, 90, 154, 0.12); color: var(--diff-med); }
-    .dh { background: rgba(199, 80, 80, 0.12); color: var(--diff-hard); }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 48px 20px;
+    .expand-icon {
+      font-size: 10px;
       color: var(--text-tertiary);
+      transition: transform 0.25s ease;
+      flex-shrink: 0;
     }
 
-    .empty-state-icon {
-      font-size: 2.5rem;
-      margin-bottom: 12px;
-      opacity: 0.4;
+    .row.open .expand-icon { transform: rotate(180deg); }
+
+    /* ── Expanded panel ── */
+    .row-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
     }
 
-    /* Responsive */
+    .row.open .row-detail { max-height: 600px; }
+
+    .detail-inner {
+      padding: 0 14px 14px 58px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-top: 1px solid var(--border-secondary);
+      padding-top: 12px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+    }
+
+    .detail-chip {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+    }
+
+    .detail-chip-label {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .detail-chip-val {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .detail-topics { font-size: 0.8rem; color: var(--text-secondary); }
+
+    .detail-topics strong {
+      display: block;
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 5px;
+    }
+
+    .topic-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+
+    .topic-tag {
+      font-size: 0.72rem;
+      padding: 2px 9px;
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-secondary);
+      color: var(--text-secondary);
+    }
+
+    /* Notes & date */
+    .detail-notes-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .notes-input {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-secondary);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      resize: none;
+      outline: none;
+      min-height: 52px;
+      transition: border-color 0.2s;
+    }
+
+    .notes-input:focus { border-color: var(--accent-green); }
+    .notes-input::placeholder { color: var(--text-tertiary); }
+
+    .date-input {
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-secondary);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 140px;
+      flex-shrink: 0;
+    }
+
+    .date-input:focus { border-color: var(--accent-green); }
+
+    .detail-label {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .save-indicator {
+      font-size: 0.65rem;
+      color: var(--freq-high);
+      font-family: var(--font-mono);
+      opacity: 0;
+      transition: opacity 0.3s;
+      margin-top: 2px;
+    }
+
+    .save-indicator.show { opacity: 1; }
+
+    /* Status row in detail */
+    .status-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .status-option {
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border-secondary);
+      background: transparent;
+      color: var(--text-tertiary);
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: all 0.18s;
+    }
+
+    .status-option:hover { border-color: var(--border-primary); color: var(--text-secondary); }
+    .status-option.active-done { background: var(--accent-green-light); color: var(--freq-high); border-color: var(--accent-green-glow); font-weight: 600; }
+    .status-option.active-wip  { background: rgba(255,176,32,0.12); color: var(--freq-med); border-color: rgba(255,176,32,0.3); font-weight: 600; }
+    .status-option.active-todo { background: var(--bg-tertiary); color: var(--text-secondary); border-color: var(--border-primary); font-weight: 600; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--text-tertiary); }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+
+    /* ── Responsive ── */
     @media (max-width: 768px) {
-      .app {
-        padding: 24px 16px 40px;
-      }
-
-      .header {
-        margin-bottom: 28px;
-      }
-
-      .tabs {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .tab {
-        padding: 8px 16px;
-        font-size: 0.8rem;
-      }
-
-      .tab-icon {
-        display: none;
-      }
-
-      .filters {
-        flex-direction: column;
-        gap: 12px;
-        padding: 16px;
-      }
-
-      .filter-group {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .filter-divider {
-        display: none;
-      }
-
-      .search-wrapper {
-        margin-left: 0;
-        width: 100%;
-      }
-
-      .search {
-        width: 100%;
-      }
-
-      .row {
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 14px;
-      }
-
-      .num {
-        order: 0;
-        min-width: 20px;
-      }
-
-      .name {
-        order: 1;
-        width: calc(100% - 34px);
-      }
-
-      .bar-bg {
-        order: 2;
-        flex: 1;
-        min-width: 60px;
-      }
-
-      .badges {
-        order: 3;
-      }
+      .app { padding: 24px 14px 60px; }
+      .header { margin-bottom: 24px; }
+      .tabs { flex-wrap: wrap; justify-content: center; }
+      .tab { padding: 8px 16px; font-size: 0.8rem; }
+      .tab-icon { display: none; }
+      .filters { gap: 10px; padding: 14px; }
+      .filters-row { gap: 6px; }
+      .filter-group { flex-wrap: wrap; justify-content: center; }
+      .filter-divider { display: none; }
+      .search-wrapper { max-width: 100%; }
+      .row-header { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+      .name { width: calc(100% - 80px); }
+      .bar-bg { display: none; }
+      .detail-inner { padding: 12px; }
+      .detail-notes-row { flex-direction: column; }
+      .date-input { width: 100%; }
     }
 
     @media (max-width: 480px) {
-      .filter-btn {
-        padding: 5px 10px;
-        font-size: 0.7rem;
-      }
-
-      .badge {
-        font-size: 0.6rem;
-        padding: 2px 6px;
-      }
-
-      .bar-bg {
-        display: none;
-      }
+      .filter-btn { padding: 5px 10px; font-size: 0.7rem; }
+      .badge { font-size: 0.58rem; padding: 2px 6px; }
+      .progress-summary { gap: 8px; }
+      .prog-chip { font-size: 0.72rem; padding: 4px 10px; }
     }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--bg-secondary);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--border-primary);
-      border-radius: 3px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--text-tertiary);
-    }
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    ::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
   </style>
 </head>
 <body>
-  <div class="bg"></div>
 
-  <div class="app">
-    <header class="header">
-      <h1>JEE Chapter Reference</h1>
-      <p>Complete chapter importance guide — ranked by frequency & difficulty</p>
-    </header>
+<!-- Animated background -->
+<div class="bg">
+  <div class="bg-sway"></div>
+</div>
 
-    <div class="tabs-container">
-      <div class="tabs">
-        <button class="tab active" onclick="setSubject('phy')">
-          <span class="tab-icon">⚛</span> Physics
-        </button>
-        <button class="tab" onclick="setSubject('chem')">
-          <span class="tab-icon">🧪</span> Chemistry
-        </button>
-        <button class="tab" onclick="setSubject('math')">
-          <span class="tab-icon">∑</span> Mathematics
-        </button>
-      </div>
+<div class="app">
+
+  <header class="header">
+    <div class="header-badge">🌿 JEE Study Planner</div>
+    <h1>JEE Chapter Reference</h1>
+    <p>Complete guide — ranked by frequency & difficulty. Progress saves automatically.</p>
+    <div class="progress-summary" id="progressSummary"></div>
+  </header>
+
+  <div class="tabs-container">
+    <div class="tabs">
+      <button class="tab active" onclick="setSubject('phy', this)"><span class="tab-icon">⚛</span> Physics</button>
+      <button class="tab" onclick="setSubject('chem', this)"><span class="tab-icon">🧪</span> Chemistry</button>
+      <button class="tab" onclick="setSubject('math', this)"><span class="tab-icon">∑</span> Mathematics</button>
     </div>
+  </div>
 
-    <div id="subtabs">
-      <div class="subtabs">
-        <button class="stab active" onclick="setSub('all')">All</button>
-        <button class="stab" onclick="setSub('phys')">Physical</button>
-        <button class="stab" onclick="setSub('inorg')">Inorganic</button>
-        <button class="stab" onclick="setSub('org')">Organic</button>
-      </div>
+  <div id="subtabs">
+    <div class="subtabs">
+      <button class="stab active" onclick="setSub('all', this)">All</button>
+      <button class="stab" onclick="setSub('phys', this)">Physical</button>
+      <button class="stab" onclick="setSub('inorg', this)">Inorganic</button>
+      <button class="stab" onclick="setSub('org', this)">Organic</button>
     </div>
+  </div>
 
-    <div class="filters-container">
-      <div class="filters">
+  <div class="filters-container">
+    <div class="filters">
+      <div class="filters-row">
         <div class="filter-group">
-          <button class="filter-btn f-all on" onclick="setFreq('all')">All</button>
-          <button class="filter-btn f-high" onclick="setFreq('H')">High</button>
-          <button class="filter-btn f-med" onclick="setFreq('M')">Medium</button>
-          <button class="filter-btn f-low" onclick="setFreq('L')">Low</button>
+          <button class="filter-btn f-all on"  onclick="setFreq('all',this)">All</button>
+          <button class="filter-btn f-high"    onclick="setFreq('H',this)">High</button>
+          <button class="filter-btn f-med"     onclick="setFreq('M',this)">Medium</button>
+          <button class="filter-btn f-low"     onclick="setFreq('L',this)">Low</button>
         </div>
         <div class="filter-divider"></div>
         <div class="filter-group">
-          <button class="filter-btn d-easy" onclick="setDiff('E')">Easy</button>
-          <button class="filter-btn d-med" onclick="setDiff('M')">Medium</button>
-          <button class="filter-btn d-hard" onclick="setDiff('D')">Hard</button>
+          <button class="filter-btn d-easy" onclick="setDiff('E',this)">Easy</button>
+          <button class="filter-btn d-med"  onclick="setDiff('M',this)">Medium</button>
+          <button class="filter-btn d-hard" onclick="setDiff('D',this)">Hard</button>
         </div>
-        <div class="search-wrapper">
-          <span class="search-icon">🔍</span>
-          <input class="search" id="srch" placeholder="Search..." oninput="applyFilters()">
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <button class="filter-btn s-done" onclick="setStatus('done',this)">✓ Done</button>
+          <button class="filter-btn s-wip"  onclick="setStatus('wip',this)">⟳ In Progress</button>
+          <button class="filter-btn s-todo" onclick="setStatus('todo',this)">○ Not Started</button>
         </div>
       </div>
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input class="search" id="srch" placeholder="Search chapters..." oninput="render()">
+      </div>
     </div>
-
-    <div id="count" class="count"></div>
-    <div id="list"></div>
   </div>
 
-  <script>
-    const D = {
-      phy: [
-        {g:"Mechanics",rows:[
-          {n:"Kinematics (1D & 2D Motion)",f:"H",d:"E",p:88},
-          {n:"Laws of Motion & Friction",f:"H",d:"E",p:85},
-          {n:"Work, Energy & Power",f:"H",d:"E",p:83},
-          {n:"Rotational Motion & Moment of Inertia",f:"H",d:"D",p:82},
-          {n:"Centre of Mass, Momentum & Collisions",f:"M",d:"M",p:72},
-          {n:"Gravitation",f:"M",d:"E",p:65},
-          {n:"Properties of Solids & Elasticity",f:"L",d:"E",p:35},
-          {n:"Surface Tension & Viscosity",f:"L",d:"M",p:30},
-          {n:"Fluid Mechanics",f:"L",d:"M",p:38},
-          {n:"Units, Dimensions & Errors",f:"M",d:"E",p:60},
-        ]},
-        {g:"Thermodynamics & Waves",rows:[
-          {n:"Thermodynamics (Laws & Processes)",f:"H",d:"M",p:80},
-          {n:"Kinetic Theory of Gases",f:"M",d:"E",p:62},
-          {n:"Thermal Properties, Calorimetry & Heat Transfer",f:"M",d:"E",p:58},
-          {n:"Simple Harmonic Motion (SHM)",f:"M",d:"M",p:65},
-          {n:"Waves — Mechanical (Sound, Superposition)",f:"M",d:"M",p:60},
-        ]},
-        {g:"Optics",rows:[
-          {n:"Ray Optics (Reflection, Refraction, Lenses)",f:"H",d:"M",p:87},
-          {n:"Wave Optics (Interference, Diffraction)",f:"H",d:"M",p:82},
-        ]},
-        {g:"Electromagnetism",rows:[
-          {n:"Electrostatics (Coulomb, Field, Potential)",f:"H",d:"D",p:95},
-          {n:"Capacitors & Dielectrics",f:"H",d:"D",p:90},
-          {n:"Current Electricity (Circuits, Kirchhoff)",f:"H",d:"M",p:93},
-          {n:"Moving Charges & Magnetic Force",f:"H",d:"M",p:78},
-          {n:"Magnetism & Matter",f:"L",d:"E",p:32},
-          {n:"Electromagnetic Induction (EMI)",f:"H",d:"D",p:90},
-          {n:"Alternating Current (AC Circuits, LCR)",f:"M",d:"D",p:68},
-          {n:"Electromagnetic Waves",f:"L",d:"E",p:28},
-        ]},
-        {g:"Modern Physics",rows:[
-          {n:"Dual Nature of Radiation & Photoelectric Effect",f:"M",d:"E",p:62},
-          {n:"Atoms & Bohr Model",f:"M",d:"E",p:60},
-          {n:"Nuclei, Radioactivity & Nuclear Reactions",f:"M",d:"E",p:58},
-          {n:"Semiconductors & Logic Gates",f:"M",d:"E",p:65},
-          {n:"Communication Systems",f:"L",d:"E",p:22},
-        ]},
-      ],
-      chem: [
-        {g:"Physical Chemistry",sub:"phys",rows:[
-          {n:"Mole Concept & Stoichiometry",f:"H",d:"E",p:90},
-          {n:"Atomic Structure",f:"M",d:"E",p:60},
-          {n:"Chemical Bonding & Molecular Structure",f:"H",d:"M",p:95},
-          {n:"States of Matter — Gas Laws",f:"M",d:"M",p:58},
-          {n:"Thermodynamics & Thermochemistry",f:"H",d:"M",p:80},
-          {n:"Chemical Equilibrium",f:"H",d:"M",p:82},
-          {n:"Ionic Equilibrium (pH, Buffers, Solubility)",f:"H",d:"M",p:80},
-          {n:"Redox Reactions & Oxidation States",f:"M",d:"E",p:55},
-          {n:"Solutions (Colligative Properties)",f:"H",d:"M",p:78},
-          {n:"Electrochemistry (Cell, EMF, Electrolysis)",f:"H",d:"M",p:88},
-          {n:"Chemical Kinetics (Rate Laws, Arrhenius)",f:"H",d:"M",p:85},
-          {n:"Solid State (Crystal Structures, Defects)",f:"M",d:"M",p:65},
-          {n:"Surface Chemistry (Adsorption, Colloids)",f:"L",d:"E",p:32},
-        ]},
-        {g:"Inorganic Chemistry",sub:"inorg",rows:[
-          {n:"Periodic Table & Periodicity in Properties",f:"M",d:"E",p:55},
-          {n:"Hydrogen & its Compounds",f:"L",d:"E",p:25},
-          {n:"s-Block Elements (Alkali & Alkaline Earth)",f:"L",d:"E",p:28},
-          {n:"p-Block — Groups 13 & 14 (B, Al, C, Si)",f:"M",d:"M",p:60},
-          {n:"p-Block — Groups 15 & 16 (N, P, O, S)",f:"H",d:"M",p:78},
-          {n:"p-Block — Groups 17 & 18 (Halogens, Noble Gases)",f:"H",d:"M",p:75},
-          {n:"d & f Block / Transition Elements",f:"H",d:"E",p:80},
-          {n:"Coordination Compounds (IUPAC, Bonding)",f:"H",d:"D",p:92},
-          {n:"Metallurgy & General Principles of Extraction",f:"L",d:"E",p:30},
-          {n:"Environmental Chemistry",f:"L",d:"E",p:20},
-        ]},
-        {g:"Organic Chemistry",sub:"org",rows:[
-          {n:"General Organic Chemistry (GOC) & Isomerism",f:"H",d:"D",p:93},
-          {n:"Hydrocarbons (Alkanes, Alkenes, Alkynes, Aromatic)",f:"M",d:"M",p:65},
-          {n:"Haloalkanes & Haloarenes (Substitution Rxns)",f:"M",d:"M",p:68},
-          {n:"Alcohols, Phenols & Ethers",f:"M",d:"M",p:65},
-          {n:"Aldehydes & Ketones (Nucleophilic Addition)",f:"H",d:"D",p:88},
-          {n:"Carboxylic Acids & Derivatives",f:"H",d:"D",p:85},
-          {n:"Amines (Basicity, Diazonium Chemistry)",f:"M",d:"M",p:68},
-          {n:"Biomolecules (Carbs, Proteins, Vitamins)",f:"M",d:"E",p:58},
-          {n:"Polymers (Addition, Condensation, Rubbers)",f:"L",d:"E",p:35},
-          {n:"Chemistry in Everyday Life",f:"L",d:"E",p:22},
-          {n:"Practical Organic Chemistry / Name Reactions",f:"M",d:"M",p:60},
-        ]},
-      ],
-      math: [
-        {g:"Algebra",rows:[
-          {n:"Sets, Relations & Functions",f:"L",d:"E",p:35},
-          {n:"Complex Numbers & Argand Plane",f:"M",d:"M",p:70},
-          {n:"Quadratic Equations & Inequalities",f:"M",d:"M",p:68},
-          {n:"Sequences & Series (AP, GP, HP, AGP)",f:"M",d:"E",p:68},
-          {n:"Binomial Theorem & its Applications",f:"M",d:"E",p:65},
-          {n:"Permutations & Combinations",f:"M",d:"M",p:65},
-          {n:"Mathematical Induction",f:"L",d:"E",p:20},
-          {n:"Matrices (Operations, Inverse, Rank)",f:"H",d:"E",p:88},
-          {n:"Determinants (Properties, Cramer's Rule)",f:"H",d:"E",p:85},
-          {n:"Mathematical Reasoning & Logic",f:"L",d:"E",p:22},
-        ]},
-        {g:"Coordinate Geometry",rows:[
-          {n:"Straight Lines & Pair of Lines",f:"M",d:"M",p:65},
-          {n:"Circles (Equations, Tangents, Chords)",f:"H",d:"M",p:88},
-          {n:"Parabola (Focus, Directrix, Tangents)",f:"H",d:"M",p:85},
-          {n:"Ellipse (Properties, Normal, Tangent)",f:"H",d:"D",p:82},
-          {n:"Hyperbola (Asymptotes, Conjugate)",f:"M",d:"D",p:70},
-        ]},
-        {g:"Trigonometry",rows:[
-          {n:"Trigonometric Ratios, Identities & Equations",f:"M",d:"M",p:68},
-          {n:"Inverse Trigonometric Functions",f:"M",d:"E",p:65},
-          {n:"Properties of Triangles & Solutions",f:"L",d:"M",p:38},
-        ]},
-        {g:"Calculus",rows:[
-          {n:"Limits & Continuity",f:"H",d:"M",p:92},
-          {n:"Differentiability & Methods of Differentiation",f:"H",d:"M",p:88},
-          {n:"Applications of Derivatives (Tangents, Maxima/Minima)",f:"H",d:"D",p:90},
-          {n:"Indefinite Integration (Methods, Standard Forms)",f:"H",d:"D",p:95},
-          {n:"Definite Integration (Properties, DUIS)",f:"H",d:"D",p:95},
-          {n:"Area under Curves",f:"H",d:"M",p:85},
-          {n:"Differential Equations (Order, Degree, Solutions)",f:"M",d:"D",p:68},
-        ]},
-        {g:"Vectors & 3D Geometry",rows:[
-          {n:"Vectors (Dot, Cross, Triple Products)",f:"H",d:"E",p:85},
-          {n:"3D Geometry (Lines, Planes, Angles)",f:"H",d:"M",p:85},
-        ]},
-        {g:"Statistics & Probability",rows:[
-          {n:"Probability (Classical, Conditional, Bayes)",f:"H",d:"M",p:88},
-          {n:"Statistics (Mean, Variance, SD)",f:"M",d:"E",p:60},
-        ]},
-      ]
-    };
+  <div id="count" class="count"></div>
+  <div id="list"></div>
+</div>
 
-    let subject='phy', subCat='all', freqF='all', diffF='all';
-    const fCol={H:"#2d8a6e",M:"#b8860b",L:"#7a7a72"};
-    const fClass={H:"fh",M:"fm",L:"fl"};
-    const dClass={E:"de",M:"dm",D:"dh"};
-    const fLabel={H:"High",M:"Medium",L:"Low"};
-    const dLabel={E:"Easy",M:"Medium",D:"Hard"};
+<script>
+// ─────────────────────────────────────────────
+// DATA — chapter details
+// ─────────────────────────────────────────────
+const D = {
+  phy: [
+    {g:"Mechanics", rows:[
+      {n:"Kinematics (1D & 2D Motion)", f:"H", d:"E", p:88,
+        yr:"3–4 Q/yr", main:"JEE Main", hrs:"6–8 hrs",
+        book:"HC Verma Ch.3–4",
+        hot:"Projectile motion, relative velocity",
+        topics:["1D motion graphs","Projectile","Relative velocity","River-boat","Circular kinematics"]},
+      {n:"Laws of Motion & Friction", f:"H", d:"E", p:85,
+        yr:"3–5 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"HC Verma Ch.5–6",
+        hot:"Pulley systems, friction on inclines",
+        topics:["Free body diagrams","Pulleys","Friction (static/kinetic)","Pseudo force","Constraint motion"]},
+      {n:"Work, Energy & Power", f:"H", d:"E", p:83,
+        yr:"2–3 Q/yr", main:"Both", hrs:"6–8 hrs",
+        book:"HC Verma Ch.8",
+        hot:"Work-energy theorem, conservation of energy",
+        topics:["Work by variable force","KE-PE interchange","Springs","Power","Conservative forces"]},
+      {n:"Rotational Motion & Moment of Inertia", f:"H", d:"D", p:82,
+        yr:"3–5 Q/yr", main:"JEE Advanced", hrs:"15–18 hrs",
+        book:"HC Verma Ch.10",
+        hot:"Rolling without slipping, torque problems",
+        topics:["MOI (parallel/perpendicular axes)","Torque","Angular momentum","Rolling","Gyroscope basics"]},
+      {n:"Centre of Mass, Momentum & Collisions", f:"M", d:"M", p:72,
+        yr:"1–2 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"HC Verma Ch.9",
+        hot:"Elastic/inelastic collision, CM frame",
+        topics:["COM of systems","Linear momentum","Elastic collision","Inelastic collision","Explosion problems"]},
+      {n:"Gravitation", f:"M", d:"E", p:65,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"5–7 hrs",
+        book:"HC Verma Ch.11",
+        hot:"Orbital velocity, escape velocity",
+        topics:["Kepler's laws","Gravitational potential","Orbital mechanics","Escape velocity","Satellite"]},
+      {n:"Properties of Solids & Elasticity", f:"L", d:"E", p:35,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"HC Verma Ch.14",
+        hot:"Stress-strain, Young's modulus",
+        topics:["Stress/strain","Young's modulus","Bulk/Shear modulus","Elastic PE","Poisson's ratio"]},
+      {n:"Surface Tension & Viscosity", f:"L", d:"M", p:30,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"HC Verma Ch.14",
+        hot:"Capillary rise, terminal velocity",
+        topics:["Surface tension","Capillarity","Viscosity","Stoke's law","Terminal velocity"]},
+      {n:"Fluid Mechanics", f:"L", d:"M", p:38,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"HC Verma Ch.13",
+        hot:"Bernoulli's equation, buoyancy",
+        topics:["Pascal's law","Archimedes","Continuity eq.","Bernoulli's","Venturimeter"]},
+      {n:"Units, Dimensions & Errors", f:"M", d:"E", p:60,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"NCERT + DC Pandey",
+        hot:"Dimensional analysis, error propagation",
+        topics:["SI units","Dimensional analysis","Significant figures","Error types","Error propagation"]},
+    ]},
+    {g:"Thermodynamics & Waves", rows:[
+      {n:"Thermodynamics (Laws & Processes)", f:"H", d:"M", p:80,
+        yr:"2–3 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"HC Verma Ch.26–27",
+        hot:"Carnot engine, PV diagrams",
+        topics:["Zeroth/First/Second law","PV diagrams","Isothermal/Adiabatic","Carnot engine","Entropy basics"]},
+      {n:"Kinetic Theory of Gases", f:"M", d:"E", p:62,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"HC Verma Ch.24",
+        hot:"RMS speed, degrees of freedom",
+        topics:["Ideal gas law","RMS/avg speed","Degrees of freedom","Mean free path","Maxwell dist."]},
+      {n:"Thermal Properties, Calorimetry & Heat Transfer", f:"M", d:"E", p:58,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"5–6 hrs",
+        book:"HC Verma Ch.28",
+        hot:"Newton's law of cooling, Stefan's law",
+        topics:["Specific heat","Calorimetry","Conduction","Convection","Radiation (Stefan/Newton)"]},
+      {n:"Simple Harmonic Motion (SHM)", f:"M", d:"M", p:65,
+        yr:"1–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"HC Verma Ch.12",
+        hot:"Spring-mass, pendulum, superposition",
+        topics:["Equation of SHM","Energy in SHM","Spring combinations","Pendulums","Damped/Forced SHM"]},
+      {n:"Waves — Mechanical (Sound, Superposition)", f:"M", d:"M", p:60,
+        yr:"1–2 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"HC Verma Ch.15–16",
+        hot:"Beats, Doppler effect, standing waves",
+        topics:["Wave eq.","Superposition","Standing waves","Beats","Doppler effect"]},
+    ]},
+    {g:"Optics", rows:[
+      {n:"Ray Optics (Reflection, Refraction, Lenses)", f:"H", d:"M", p:87,
+        yr:"2–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"HC Verma Ch.18",
+        hot:"Lens formula, TIR, mirror formula",
+        topics:["Mirror formula","Refraction at surfaces","Lens formula","Power of lens","Optical instruments"]},
+      {n:"Wave Optics (Interference, Diffraction)", f:"H", d:"M", p:82,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"HC Verma Ch.17",
+        hot:"YDSE fringe width, diffraction limit",
+        topics:["Huygens principle","YDSE","Coherence","Diffraction (single/double slit)","Polarisation"]},
+    ]},
+    {g:"Electromagnetism", rows:[
+      {n:"Electrostatics (Coulomb, Field, Potential)", f:"H", d:"D", p:95,
+        yr:"4–6 Q/yr", main:"Both", hrs:"15–18 hrs",
+        book:"HC Verma Ch.29–30 + Irodov",
+        hot:"Gauss's law, potential due to dipole",
+        topics:["Coulomb's law","Electric field (continuous)","Gauss's law","Potential","Dipole"]},
+      {n:"Capacitors & Dielectrics", f:"H", d:"D", p:90,
+        yr:"3–5 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"HC Verma Ch.31",
+        hot:"Combination of capacitors, energy stored",
+        topics:["Capacitance","Series/parallel","Dielectrics","Energy stored","Force between plates"]},
+      {n:"Current Electricity (Circuits, Kirchhoff)", f:"H", d:"M", p:93,
+        yr:"4–6 Q/yr", main:"Both", hrs:"12–14 hrs",
+        book:"HC Verma Ch.32",
+        hot:"Kirchhoff's laws, Wheatstone bridge",
+        topics:["Ohm's law","Kirchhoff's laws","Wheatstone bridge","Potentiometer","Meter bridge"]},
+      {n:"Moving Charges & Magnetic Force", f:"H", d:"M", p:78,
+        yr:"2–3 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"HC Verma Ch.34",
+        hot:"Cyclotron, Biot-Savart law",
+        topics:["Lorentz force","Biot-Savart law","Ampere's law","Solenoid","Cyclotron"]},
+      {n:"Magnetism & Matter", f:"L", d:"E", p:32,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"NCERT Ch.5",
+        hot:"Bar magnet, Earth's magnetism",
+        topics:["Bar magnet","Magnetic field lines","Earth's magnetism","Para/Dia/Ferromagnetism","Hysteresis"]},
+      {n:"Electromagnetic Induction (EMI)", f:"H", d:"D", p:90,
+        yr:"3–5 Q/yr", main:"Both", hrs:"12–14 hrs",
+        book:"HC Verma Ch.38",
+        hot:"Faraday's law, self/mutual inductance",
+        topics:["Faraday's law","Lenz's law","Self inductance","Mutual inductance","Eddy currents"]},
+      {n:"Alternating Current (AC Circuits, LCR)", f:"M", d:"D", p:68,
+        yr:"1–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"HC Verma Ch.39",
+        hot:"Resonance in LCR, power factor",
+        topics:["Phasors","Impedance","LCR series/parallel","Resonance","Power factor"]},
+      {n:"Electromagnetic Waves", f:"L", d:"E", p:28,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"2–3 hrs",
+        book:"NCERT Ch.8",
+        hot:"EM spectrum, wave properties",
+        topics:["Maxwell's equations (concept)","EM spectrum","Wave velocity","Intensity","Displacement current"]},
+    ]},
+    {g:"Modern Physics", rows:[
+      {n:"Dual Nature of Radiation & Photoelectric Effect", f:"M", d:"E", p:62,
+        yr:"1–2 Q/yr", main:"Both", hrs:"5–6 hrs",
+        book:"HC Verma Ch.42",
+        hot:"de Broglie wavelength, stopping potential",
+        topics:["Photoelectric effect","Work function","de Broglie hypothesis","Davisson-Germer","Matter waves"]},
+      {n:"Atoms & Bohr Model", f:"M", d:"E", p:60,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"HC Verma Ch.43",
+        hot:"Energy levels, spectral series",
+        topics:["Rutherford model","Bohr model","Spectral series","Ionisation energy","Hydrogen spectrum"]},
+      {n:"Nuclei, Radioactivity & Nuclear Reactions", f:"M", d:"E", p:58,
+        yr:"1–2 Q/yr", main:"Both", hrs:"5–6 hrs",
+        book:"HC Verma Ch.45",
+        hot:"Half-life, binding energy per nucleon",
+        topics:["Nuclear composition","Binding energy","Radioactive decay","Half-life","Fission/Fusion"]},
+      {n:"Semiconductors & Logic Gates", f:"M", d:"E", p:65,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"5–6 hrs",
+        book:"NCERT Ch.14",
+        hot:"p-n junction, logic gates",
+        topics:["Intrinsic/Extrinsic","p-n junction","Diode rectifier","Transistor basics","Logic gates"]},
+      {n:"Communication Systems", f:"L", d:"E", p:22,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"2–3 hrs",
+        book:"NCERT Ch.15",
+        hot:"Modulation, bandwidth",
+        topics:["Modulation (AM/FM)","Bandwidth","Propagation","Antenna","Digital signals"]},
+    ]},
+  ],
 
-    function getColor(f) {
-      return fCol[f];
+  chem: [
+    {g:"Physical Chemistry", sub:"phys", rows:[
+      {n:"Mole Concept & Stoichiometry", f:"H", d:"E", p:90,
+        yr:"3–5 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"NCERT + VK Jaiswal",
+        hot:"Limiting reagent, % yield, POAC",
+        topics:["Mole","Empirical/Molecular formula","Limiting reagent","% yield","POAC"]},
+      {n:"Atomic Structure", f:"M", d:"E", p:60,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"5–6 hrs",
+        book:"NCERT Ch.2",
+        hot:"Quantum numbers, electronic configuration",
+        topics:["Bohr model","Quantum numbers","Orbitals","Electronic config.","Aufbau/Hund/Pauli"]},
+      {n:"Chemical Bonding & Molecular Structure", f:"H", d:"M", p:95,
+        yr:"4–6 Q/yr", main:"Both", hrs:"12–14 hrs",
+        book:"NCERT + JD Lee",
+        hot:"VSEPR, hybridisation, MO theory",
+        topics:["Ionic/Covalent bond","VSEPR","Hybridisation","MOT (O2,N2)","H-bonding","Resonance"]},
+      {n:"States of Matter — Gas Laws", f:"M", d:"M", p:58,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"5–6 hrs",
+        book:"NCERT Ch.5",
+        hot:"Van der Waals equation, real gases",
+        topics:["Ideal gas law","Dalton's law","Graham's law","Real gases","van der Waals eq."]},
+      {n:"Thermodynamics & Thermochemistry", f:"H", d:"M", p:80,
+        yr:"2–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"NCERT + RC Mukherjee",
+        hot:"Hess's law, Gibbs free energy",
+        topics:["Enthalpy","Hess's law","Entropy","Gibbs energy","Bond energies"]},
+      {n:"Chemical Equilibrium", f:"H", d:"M", p:82,
+        yr:"2–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"NCERT + VK Jaiswal",
+        hot:"Le Chatelier, Kp vs Kc",
+        topics:["Kp/Kc","Le Chatelier's principle","Degree of dissociation","Q vs K","Relation Kp-Kc"]},
+      {n:"Ionic Equilibrium (pH, Buffers, Solubility)", f:"H", d:"M", p:80,
+        yr:"2–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"NCERT + VK Jaiswal",
+        hot:"pH of salts, buffer Henderson-Hasselbalch",
+        topics:["Acids/Bases (Brønsted/Lewis)","pH calculations","Buffer","Hydrolysis","Ksp/solubility"]},
+      {n:"Redox Reactions & Oxidation States", f:"M", d:"E", p:55,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"NCERT Ch.8",
+        hot:"Balancing redox (half-reaction method)",
+        topics:["Oxidation number","Balancing redox","Half-reaction method","Disproportionation","Applications"]},
+      {n:"Solutions (Colligative Properties)", f:"H", d:"M", p:78,
+        yr:"2–3 Q/yr", main:"Both", hrs:"7–9 hrs",
+        book:"NCERT Ch.2 + RC Mukherjee",
+        hot:"Osmotic pressure, van't Hoff factor",
+        topics:["Raoult's law","Elevation of BP","Depression of FP","Osmosis","van't Hoff factor"]},
+      {n:"Electrochemistry (Cell, EMF, Electrolysis)", f:"H", d:"M", p:88,
+        yr:"3–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"NCERT + RC Mukherjee",
+        hot:"Nernst equation, Faraday's laws",
+        topics:["Galvanic cells","EMF/Cell potential","Nernst equation","Electrolysis","Faraday's laws"]},
+      {n:"Chemical Kinetics (Rate Laws, Arrhenius)", f:"H", d:"M", p:85,
+        yr:"2–4 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"NCERT Ch.4 + RC Mukherjee",
+        hot:"Integrated rate laws, t½",
+        topics:["Rate law","Order of reaction","Integrated rate laws","Arrhenius equation","t½"]},
+      {n:"Solid State (Crystal Structures, Defects)", f:"M", d:"M", p:65,
+        yr:"1–3 Q/yr", main:"Both", hrs:"6–8 hrs",
+        book:"NCERT Ch.1",
+        hot:"Unit cell calculations, packing efficiency",
+        topics:["Unit cells","Packing efficiency","Coordination number","Crystal defects","Semiconductors"]},
+      {n:"Surface Chemistry (Adsorption, Colloids)", f:"L", d:"E", p:32,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"NCERT Ch.5",
+        hot:"Freundlich isotherm, colloid types",
+        topics:["Adsorption isotherms","Catalysis","Colloids","Brownian motion","Tyndall effect"]},
+    ]},
+    {g:"Inorganic Chemistry", sub:"inorg", rows:[
+      {n:"Periodic Table & Periodicity in Properties", f:"M", d:"E", p:55,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"NCERT Ch.3 + JD Lee",
+        hot:"IE, EA, electronegativity trends",
+        topics:["s/p/d/f blocks","IE/EA/EN trends","Atomic radius","Diagonal relationship","Anomalies"]},
+      {n:"Hydrogen & its Compounds", f:"L", d:"E", p:25,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"2–3 hrs",
+        book:"NCERT Ch.9",
+        hot:"H2O2 structure, hydrides",
+        topics:["Isotopes of H","H2O2","Heavy water","Hydrides","Industrial uses"]},
+      {n:"s-Block Elements (Alkali & Alkaline Earth)", f:"L", d:"E", p:28,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"NCERT Ch.10",
+        hot:"Anomalous behaviour of Li, Be",
+        topics:["Na/K/Li properties","Anomalous Li/Be","Compounds (NaOH,Na2CO3)","Diagonal similarity","Flame tests"]},
+      {n:"p-Block — Groups 13 & 14 (B, Al, C, Si)", f:"M", d:"M", p:60,
+        yr:"1–2 Q/yr", main:"Both", hrs:"5–6 hrs",
+        book:"NCERT Ch.11 + JD Lee",
+        hot:"Borax bead test, allotropes of C",
+        topics:["Boron chemistry","Borax/Boric acid","Allotropes of C","Silicates","Anomalous B/C"]},
+      {n:"p-Block — Groups 15 & 16 (N, P, O, S)", f:"H", d:"M", p:78,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"NCERT Ch.7 + JD Lee",
+        hot:"Oxoacids of N and P, allotropes of S",
+        topics:["Oxoacids of N(HNO3/HNO2)","Oxoacids of P","Allotropes of S","Ozone","SO2/H2SO4"]},
+      {n:"p-Block — Groups 17 & 18 (Halogens, Noble Gases)", f:"H", d:"M", p:75,
+        yr:"2–3 Q/yr", main:"Both", hrs:"6–8 hrs",
+        book:"NCERT Ch.7 + JD Lee",
+        hot:"Interhalogen compounds, oxoacids of Cl",
+        topics:["Halogens reactivity","HX acids","Interhalogen","Oxoacids of Cl","Noble gas compounds"]},
+      {n:"d & f Block / Transition Elements", f:"H", d:"E", p:80,
+        yr:"2–3 Q/yr", main:"Both", hrs:"7–8 hrs",
+        book:"NCERT Ch.8 + JD Lee",
+        hot:"Variable oxidation states, catalytic properties",
+        topics:["Electronic config.","Oxidation states","Colour/Magnetism","Catalysis","Lanthanide contraction"]},
+      {n:"Coordination Compounds (IUPAC, Bonding)", f:"H", d:"D", p:92,
+        yr:"3–5 Q/yr", main:"Both", hrs:"14–16 hrs",
+        book:"NCERT Ch.9 + JD Lee",
+        hot:"Crystal Field Theory, isomerism in complexes",
+        topics:["IUPAC nomenclature","VBT","CFT (splitting)","Isomerism","Stability constants","EAN rule"]},
+      {n:"Metallurgy & General Principles of Extraction", f:"L", d:"E", p:30,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"NCERT Ch.6",
+        hot:"Ellingham diagram, refining methods",
+        topics:["Concentration","Roasting/Calcination","Reduction","Ellingham","Refining methods"]},
+      {n:"Environmental Chemistry", f:"L", d:"E", p:20,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"1–2 hrs",
+        book:"NCERT Ch.14",
+        hot:"Ozone depletion, green chemistry",
+        topics:["Air pollution","Water pollution","Ozone depletion","Green chemistry","Acid rain"]},
+    ]},
+    {g:"Organic Chemistry", sub:"org", rows:[
+      {n:"General Organic Chemistry (GOC) & Isomerism", f:"H", d:"D", p:93,
+        yr:"4–6 Q/yr", main:"Both", hrs:"16–20 hrs",
+        book:"MS Chauhan + Morrison Boyd",
+        hot:"Stability of carbocations, tautomerism",
+        topics:["Hybridisation","Inductive/Resonance/Hyperconjugation","Carbocation stability","Isomerism (structural/stereo)","Tautomerism","Aromaticity"]},
+      {n:"Hydrocarbons (Alkanes, Alkenes, Alkynes, Aromatic)", f:"M", d:"M", p:65,
+        yr:"1–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"MS Chauhan + NCERT",
+        hot:"Markovnikov, EAS mechanism",
+        topics:["IUPAC","Alkane reactions (free radical)","Alkene addition","Alkynes","EAS in benzene"]},
+      {n:"Haloalkanes & Haloarenes (Substitution Rxns)", f:"M", d:"M", p:68,
+        yr:"1–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"MS Chauhan",
+        hot:"SN1 vs SN2, Wurtz reaction",
+        topics:["SN1/SN2/E1/E2","Stereochemistry of SN2","Wurtz/Fittig","Grignard","Aryl halides"]},
+      {n:"Alcohols, Phenols & Ethers", f:"M", d:"M", p:65,
+        yr:"1–2 Q/yr", main:"Both", hrs:"7–8 hrs",
+        book:"MS Chauhan + NCERT",
+        hot:"Lucas test, Williamson synthesis",
+        topics:["Preparation of alcohols","Lucas test","Phenol acidity","Williamson synthesis","Reactions of ethers"]},
+      {n:"Aldehydes & Ketones (Nucleophilic Addition)", f:"H", d:"D", p:88,
+        yr:"3–5 Q/yr", main:"Both", hrs:"12–14 hrs",
+        book:"MS Chauhan",
+        hot:"Aldol condensation, Cannizzaro reaction",
+        topics:["Nucleophilic addition","Aldol/Claisen","Cannizzaro","Wittig","Named reactions"]},
+      {n:"Carboxylic Acids & Derivatives", f:"H", d:"D", p:85,
+        yr:"2–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"MS Chauhan",
+        hot:"Hell-Volhard-Zelinsky, acyl halides",
+        topics:["Acidity of RCOOH","Derivatives (esters/amides)","HVZ reaction","Decarboxylation","Kolbe synthesis"]},
+      {n:"Amines (Basicity, Diazonium Chemistry)", f:"M", d:"M", p:68,
+        yr:"1–3 Q/yr", main:"Both", hrs:"7–9 hrs",
+        book:"MS Chauhan + NCERT",
+        hot:"Basicity order, Sandmeyer reaction",
+        topics:["Basicity of amines","Hoffman/Gabriel","Diazonium salts","Sandmeyer/Balz-Schiemann","Coupling rxn"]},
+      {n:"Biomolecules (Carbs, Proteins, Vitamins)", f:"M", d:"E", p:58,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"NCERT Ch.14",
+        hot:"Reducing sugars, amino acid structure",
+        topics:["Glucose structure","Disaccharides","Amino acids","Proteins (primary–quaternary)","Vitamins/Enzymes"]},
+      {n:"Polymers (Addition, Condensation, Rubbers)", f:"L", d:"E", p:35,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"2–3 hrs",
+        book:"NCERT Ch.15",
+        hot:"Nylon-6,6 vs Nylon-6, natural rubber",
+        topics:["Addition polymers","Condensation polymers","Natural rubber","Synthetic rubber","Biodegradable"]},
+      {n:"Chemistry in Everyday Life", f:"L", d:"E", p:22,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"1–2 hrs",
+        book:"NCERT Ch.16",
+        hot:"Drug classification, food preservatives",
+        topics:["Analgesics/Antiseptics","Antibiotics","Antacids","Soaps/Detergents","Food chemicals"]},
+      {n:"Practical Organic Chemistry / Name Reactions", f:"M", d:"M", p:60,
+        yr:"1–2 Q/yr", main:"Both", hrs:"5–6 hrs",
+        book:"MS Chauhan",
+        hot:"Identification of functional groups, multi-step synthesis",
+        topics:["Fehling/Tollens test","Iodoform test","Lassaigne's test","Name reactions (30+)","Multi-step synthesis"]},
+    ]},
+  ],
+
+  math: [
+    {g:"Algebra", rows:[
+      {n:"Sets, Relations & Functions", f:"L", d:"E", p:35,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"3–4 hrs",
+        book:"SK Goyal / Arihant",
+        hot:"Bijective functions, composite functions",
+        topics:["Set operations","Types of relations","Types of functions","Composite/Inverse","Even/Odd functions"]},
+      {n:"Complex Numbers & Argand Plane", f:"M", d:"M", p:70,
+        yr:"1–2 Q/yr", main:"Both", hrs:"7–8 hrs",
+        book:"SK Goyal",
+        hot:"Rotation formula, nth roots of unity",
+        topics:["Algebra of complex numbers","Modulus/Argument","Roots of unity","Geometry in Argand plane","De Moivre's theorem"]},
+      {n:"Quadratic Equations & Inequalities", f:"M", d:"M", p:68,
+        yr:"1–2 Q/yr", main:"Both", hrs:"7–8 hrs",
+        book:"SK Goyal",
+        hot:"Nature of roots, location of roots",
+        topics:["Discriminant","Vieta's formulas","Nature of roots","Location of roots","Cubic/quartic basics"]},
+      {n:"Sequences & Series (AP, GP, HP, AGP)", f:"M", d:"E", p:68,
+        yr:"1–2 Q/yr", main:"Both", hrs:"6–7 hrs",
+        book:"SK Goyal",
+        hot:"Sum of special series, AM-GM-HM",
+        topics:["AP/GP/HP","AGP sum","AM≥GM≥HM","Telescoping","Σn/Σn²/Σn³"]},
+      {n:"Binomial Theorem & its Applications", f:"M", d:"E", p:65,
+        yr:"1–2 Q/yr", main:"Both", hrs:"5–6 hrs",
+        book:"SK Goyal",
+        hot:"General term, middle term, coefficient of x^n",
+        topics:["General term","Middle term","Greatest coefficient","Multi-nomial","Binomial approx."]},
+      {n:"Permutations & Combinations", f:"M", d:"M", p:65,
+        yr:"1–2 Q/yr", main:"Both", hrs:"7–8 hrs",
+        book:"SK Goyal",
+        hot:"Arrangement with identical items, circular permutation",
+        topics:["nPr / nCr","Circular permutation","Identical objects","Derangement","Principle of inclusion-exclusion"]},
+      {n:"Mathematical Induction", f:"L", d:"E", p:20,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"2 hrs",
+        book:"NCERT",
+        hot:"Proving divisibility and inequalities",
+        topics:["Weak induction","Strong induction","Divisibility proofs","Inequality proofs"]},
+      {n:"Matrices (Operations, Inverse, Rank)", f:"H", d:"E", p:88,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"Arihant Algebra",
+        hot:"Cayley-Hamilton, matrix power",
+        topics:["Matrix operations","Determinant","Inverse","Cayley-Hamilton","Matrix power","Rank"]},
+      {n:"Determinants (Properties, Cramer's Rule)", f:"H", d:"E", p:85,
+        yr:"2–3 Q/yr", main:"Both", hrs:"6–7 hrs",
+        book:"Arihant Algebra",
+        hot:"Row/column operations, system of equations",
+        topics:["Properties of determinants","Cofactor/Adjoint","Cramer's rule","Consistency of equations","Area using det."]},
+      {n:"Mathematical Reasoning & Logic", f:"L", d:"E", p:22,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"2 hrs",
+        book:"NCERT",
+        hot:"Converse, contrapositive, biconditional",
+        topics:["Statements","Connectives (AND/OR/NOT)","Converse/Contrapositive","Tautology","Truth tables"]},
+    ]},
+    {g:"Coordinate Geometry", rows:[
+      {n:"Straight Lines & Pair of Lines", f:"M", d:"M", p:65,
+        yr:"1–2 Q/yr", main:"Both", hrs:"7–8 hrs",
+        book:"SL Loney / SK Goyal",
+        hot:"Angle bisectors, family of lines",
+        topics:["Various forms of line","Distance formulas","Angle bisectors","Pair of lines","Homogenisation"]},
+      {n:"Circles (Equations, Tangents, Chords)", f:"H", d:"M", p:88,
+        yr:"2–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"SL Loney",
+        hot:"Radical axis, family of circles, power of a point",
+        topics:["Standard form","Tangent/Normal","Chord of contact","Radical axis","Family of circles","Power of point"]},
+      {n:"Parabola (Focus, Directrix, Tangents)", f:"H", d:"M", p:85,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"SL Loney",
+        hot:"Chord of contact, normals at 3 co-normal points",
+        topics:["Standard forms","Parametric coords","Tangent/Normal","Chord of contact","Co-normal points"]},
+      {n:"Ellipse (Properties, Normal, Tangent)", f:"H", d:"D", p:82,
+        yr:"1–3 Q/yr", main:"Advanced", hrs:"8–10 hrs",
+        book:"SL Loney",
+        hot:"Auxiliary circle, eccentric angle",
+        topics:["Standard form","Auxiliary circle","Eccentric angle","Tangent/Normal","Focal chords"]},
+      {n:"Hyperbola (Asymptotes, Conjugate)", f:"M", d:"D", p:70,
+        yr:"1–2 Q/yr", main:"Advanced", hrs:"6–8 hrs",
+        book:"SL Loney",
+        hot:"Rectangular hyperbola xy=c²",
+        topics:["Standard form","Asymptotes","Conjugate hyperbola","Rectangular hyperbola","Tangent/Normal"]},
+    ]},
+    {g:"Trigonometry", rows:[
+      {n:"Trigonometric Ratios, Identities & Equations", f:"M", d:"M", p:68,
+        yr:"1–2 Q/yr", main:"Both", hrs:"7–8 hrs",
+        book:"SL Loney",
+        hot:"Principal value solution, general solution",
+        topics:["Compound angles","Multiple/Submultiple angles","Sum-to-product","Equations","General solution"]},
+      {n:"Inverse Trigonometric Functions", f:"M", d:"E", p:65,
+        yr:"1–2 Q/yr", main:"Both", hrs:"5–6 hrs",
+        book:"Arihant",
+        hot:"Domain/range, composition of inverse trigo",
+        topics:["Domain/Range","Principal values","Identities","Composition","Simplification tricks"]},
+      {n:"Properties of Triangles & Solutions", f:"L", d:"M", p:38,
+        yr:"0–1 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"SL Loney",
+        hot:"Sine/Cosine rule, circumradius formula",
+        topics:["Sine rule","Cosine rule","Area of triangle","Circumradius/Inradius","Escribed circles"]},
+    ]},
+    {g:"Calculus", rows:[
+      {n:"Limits & Continuity", f:"H", d:"M", p:92,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"Amit Agarwal (Arihant)",
+        hot:"L'Hôpital, sandwich theorem, 1∞ form",
+        topics:["Standard limits","L'Hôpital","Sandwich theorem","1∞/0⁰ forms","Continuity tests","IVT"]},
+      {n:"Differentiability & Methods of Differentiation", f:"H", d:"M", p:88,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"Amit Agarwal",
+        hot:"Parametric, implicit differentiation, chain rule",
+        topics:["Differentiability condition","Chain rule","Implicit/Parametric","Logarithmic diff.","nth derivative"]},
+      {n:"Applications of Derivatives (Tangents, Maxima/Minima)", f:"H", d:"D", p:90,
+        yr:"2–4 Q/yr", main:"Both", hrs:"12–14 hrs",
+        book:"Amit Agarwal",
+        hot:"Rolle's/LMVT, monotonicity, global maxima",
+        topics:["Tangent/Normal","Monotonicity","Rolle's/LMVT","Local/Global extrema","Curve tracing basics"]},
+      {n:"Indefinite Integration (Methods, Standard Forms)", f:"H", d:"D", p:95,
+        yr:"3–5 Q/yr", main:"Both", hrs:"16–20 hrs",
+        book:"Amit Agarwal",
+        hot:"Integration by parts (ILATE), partial fractions",
+        topics:["Substitution","By parts (ILATE)","Partial fractions","∫√(ax²+bx+c)","Reduction formulae"]},
+      {n:"Definite Integration (Properties, DUIS)", f:"H", d:"D", p:95,
+        yr:"3–5 Q/yr", main:"Both", hrs:"14–16 hrs",
+        book:"Amit Agarwal",
+        hot:"King's property, Walli's formula, DUIS",
+        topics:["Properties (King/Newton-Leibniz)","Walli's formula","DUIS","Gamma function basics","Summation as integral"]},
+      {n:"Area under Curves", f:"H", d:"M", p:85,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"Amit Agarwal",
+        hot:"Area between two curves, shifting technique",
+        topics:["Area by integration","Area between curves","Shifting axis","Absolute value curves","Parametric area"]},
+      {n:"Differential Equations (Order, Degree, Solutions)", f:"M", d:"D", p:68,
+        yr:"1–2 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"Amit Agarwal",
+        hot:"Linear 1st order DE, Bernoulli equation",
+        topics:["Order/Degree","Variable separable","Homogeneous DE","Linear DE (integrating factor)","Bernoulli/Exact"]},
+    ]},
+    {g:"Vectors & 3D Geometry", rows:[
+      {n:"Vectors (Dot, Cross, Triple Products)", f:"H", d:"E", p:85,
+        yr:"2–3 Q/yr", main:"Both", hrs:"8–10 hrs",
+        book:"Arihant 3D + Vectors",
+        hot:"Scalar triple product = 0 for coplanarity",
+        topics:["Vector algebra","Dot/Cross product","Scalar triple product","Vector triple product","Coplanarity/collinearity"]},
+      {n:"3D Geometry (Lines, Planes, Angles)", f:"H", d:"M", p:85,
+        yr:"2–3 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"Arihant 3D",
+        hot:"Skew lines, foot of perpendicular from point to plane",
+        topics:["Direction cosines","Line (symmetric/unsymmetric)","Plane equations","Skew lines","Shortest distance","Image in plane"]},
+    ]},
+    {g:"Statistics & Probability", rows:[
+      {n:"Probability (Classical, Conditional, Bayes)", f:"H", d:"M", p:88,
+        yr:"2–4 Q/yr", main:"Both", hrs:"10–12 hrs",
+        book:"SK Goyal / Arihant",
+        hot:"Bayes' theorem, binomial distribution",
+        topics:["Classical probability","Conditional probability","Bayes' theorem","Bernoulli trials","Binomial distribution"]},
+      {n:"Statistics (Mean, Variance, SD)", f:"M", d:"E", p:60,
+        yr:"1–2 Q/yr", main:"JEE Main", hrs:"4–5 hrs",
+        book:"NCERT Ch.15",
+        hot:"Combined variance, coefficient of variation",
+        topics:["Mean/Median/Mode","Variance/SD","Combined mean/variance","Coefficient of variation","Frequency distribution"]},
+    ]},
+  ],
+};
+
+// ─────────────────────────────────────────────
+// LOCALSTORAGE helpers
+// ─────────────────────────────────────────────
+const LS_KEY = 'jee_planner_v2';
+
+function loadStorage() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveStorage(data) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+  catch {}
+}
+
+function chapterKey(subj, groupName, chapterName) {
+  return `${subj}__${groupName}__${chapterName}`;
+}
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let subject = 'phy', subCat = 'all', freqF = 'all', diffF = 'all', statF = 'all';
+const fCol = { H:"#2d8a6e", M:"#b8860b", L:"#7a7a72" };
+const fClass = { H:"fh", M:"fm", L:"fl" };
+const dClass = { E:"de", M:"dm", D:"dh" };
+const fLabel = { H:"High", M:"Medium", L:"Low" };
+const dLabel = { E:"Easy", M:"Medium", D:"Hard" };
+const STATUS_ICONS = { done:"✓", wip:"⟳", todo:"" };
+
+// ─────────────────────────────────────────────
+// PROGRESS SUMMARY
+// ─────────────────────────────────────────────
+function updateProgressSummary() {
+  const store = loadStorage();
+  let done = 0, wip = 0, total = 0;
+  Object.values(D).forEach(groups => {
+    groups.forEach(g => {
+      g.rows.forEach(r => {
+        total++;
+        const key = Object.keys(D).find(k => D[k] === groups);
+        // find by iterating — simple approach
+      });
+    });
+  });
+  // Count across all
+  done = 0; wip = 0; total = 0;
+  ['phy','chem','math'].forEach(subj => {
+    D[subj].forEach(g => {
+      g.rows.forEach(r => {
+        total++;
+        const k = chapterKey(subj, g.g, r.n);
+        const s = store[k]?.status || 'todo';
+        if(s === 'done') done++;
+        else if(s === 'wip') wip++;
+      });
+    });
+  });
+  const todo = total - done - wip;
+  document.getElementById('progressSummary').innerHTML = `
+    <div class="prog-chip"><span class="prog-dot done"></span>${done} Done</div>
+    <div class="prog-chip"><span class="prog-dot wip"></span>${wip} In Progress</div>
+    <div class="prog-chip"><span class="prog-dot todo"></span>${todo} Not Started</div>
+    <div class="prog-chip">📊 ${Math.round(done/total*100)}% complete</div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// TOGGLE EXPAND
+// ─────────────────────────────────────────────
+function toggleRow(el) {
+  el.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────────
+// STATUS CYCLE (on the circle button)
+// ─────────────────────────────────────────────
+function cycleStatus(e, subj, gName, rName) {
+  e.stopPropagation();
+  const store = loadStorage();
+  const k = chapterKey(subj, gName, rName);
+  const cur = store[k]?.status || 'todo';
+  const next = cur === 'todo' ? 'wip' : cur === 'wip' ? 'done' : 'todo';
+  store[k] = store[k] || {};
+  store[k].status = next;
+  saveStorage(store);
+  render();
+  updateProgressSummary();
+}
+
+// ─────────────────────────────────────────────
+// SET STATUS from detail panel
+// ─────────────────────────────────────────────
+function setChapterStatus(subj, gName, rName, status) {
+  const store = loadStorage();
+  const k = chapterKey(subj, gName, rName);
+  store[k] = store[k] || {};
+  store[k].status = status;
+  saveStorage(store);
+  // update just the row classes without full re-render
+  const rowEl = document.querySelector(`[data-key="${CSS.escape(k)}"]`);
+  if(rowEl) {
+    rowEl.classList.remove('status-done','status-wip');
+    if(status === 'done') rowEl.classList.add('status-done');
+    else if(status === 'wip') rowEl.classList.add('status-wip');
+    // update circle btn
+    const btn = rowEl.querySelector('.status-btn');
+    if(btn) {
+      btn.className = `status-btn ${status}`;
+      btn.textContent = STATUS_ICONS[status];
     }
+    // update detail buttons
+    rowEl.querySelectorAll('.status-option').forEach(b => {
+      b.className = 'status-option' + (b.dataset.s === status ? ` active-${status}` : '');
+    });
+  }
+  updateProgressSummary();
+}
 
-    function render(){
-      const srch=(document.getElementById('srch')||{value:''}).value.toLowerCase();
-      const list=document.getElementById('list');
-      const subtabs=document.getElementById('subtabs');
-      subtabs.classList.toggle('visible', subject==='chem');
+// ─────────────────────────────────────────────
+// SAVE NOTES & DATE
+// ─────────────────────────────────────────────
+let saveTimers = {};
 
-      let html='';
-      let total=0,shown=0;
-      const groups=D[subject];
-      groups.forEach((g, groupIndex) => {
-        if(subject==='chem'&&subCat!=='all'&&g.sub!==subCat)return;
-        let rowsHtml='';
-        let rankInGroup=0;
-        g.rows.forEach((r,i)=>{
-          total++;
-          const matchFreq=freqF==='all'||r.f===freqF;
-          const matchDiff=diffF==='all'||r.d===diffF;
-          const matchSearch=!srch||r.n.toLowerCase().includes(srch);
-          if(!matchFreq||!matchDiff||!matchSearch){
-            rowsHtml+=`<div class="row hidden" data-f="${r.f}" data-d="${r.d}"></div>`;
-            return;
-          }
-          shown++;
-          rankInGroup++;
-          const delay = (groupIndex * 0.04 + rankInGroup * 0.02).toFixed(2);
-          rowsHtml+=`<div class="row" style="animation-delay: ${delay}s" data-f="${r.f}" data-d="${r.d}">
+function onNoteChange(key, value) {
+  clearTimeout(saveTimers[key]);
+  saveTimers[key] = setTimeout(() => {
+    const store = loadStorage();
+    store[key] = store[key] || {};
+    store[key].notes = value;
+    saveStorage(store);
+    const ind = document.querySelector(`[data-key="${CSS.escape(key)}"] .save-indicator`);
+    if(ind){ ind.classList.add('show'); setTimeout(()=>ind.classList.remove('show'), 1500); }
+  }, 600);
+}
+
+function onDateChange(key, value) {
+  const store = loadStorage();
+  store[key] = store[key] || {};
+  store[key].date = value;
+  saveStorage(store);
+  const ind = document.querySelector(`[data-key="${CSS.escape(key)}"] .save-indicator`);
+  if(ind){ ind.classList.add('show'); setTimeout(()=>ind.classList.remove('show'), 1500); }
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function render() {
+  const srch = (document.getElementById('srch')?.value || '').toLowerCase();
+  const list = document.getElementById('list');
+  const store = loadStorage();
+
+  document.getElementById('subtabs').classList.toggle('visible', subject === 'chem');
+
+  let html = '', total = 0, shown = 0;
+
+  D[subject].forEach((g, gi) => {
+    if(subject === 'chem' && subCat !== 'all' && g.sub !== subCat) return;
+    let rowsHtml = '', rankInGroup = 0;
+
+    g.rows.forEach((r, ri) => {
+      total++;
+      const k = chapterKey(subject, g.g, r.n);
+      const saved = store[k] || {};
+      const status = saved.status || 'todo';
+      const notes = saved.notes || '';
+      const date = saved.date || '';
+
+      const matchFreq = freqF === 'all' || r.f === freqF;
+      const matchDiff = diffF === 'all' || r.d === diffF;
+      const matchSearch = !srch || r.n.toLowerCase().includes(srch);
+      const matchStatus = statF === 'all' || status === statF;
+
+      if(!matchFreq || !matchDiff || !matchSearch || !matchStatus) {
+        rowsHtml += `<div class="row hidden"></div>`;
+        return;
+      }
+      shown++;
+      rankInGroup++;
+
+      const delay = (gi * 0.03 + rankInGroup * 0.015).toFixed(2);
+      const statusClass = status !== 'todo' ? `status-${status}` : '';
+      const topicTags = (r.topics||[]).map(t=>`<span class="topic-tag">${t}</span>`).join('');
+
+      rowsHtml += `
+        <div class="row ${statusClass}" style="animation-delay:${delay}s" data-key="${k.replace(/"/g,'&quot;')}">
+          <div class="row-header" onclick="toggleRow(this.closest('.row'))">
             <span class="num">${rankInGroup}</span>
+            <button class="status-btn ${status}" title="Click to change status"
+              onclick="cycleStatus(event,'${subject}','${g.g.replace(/'/g,"\\'")}','${r.n.replace(/'/g,"\\'")}')">
+              ${STATUS_ICONS[status]}
+            </button>
             <span class="name">${r.n}</span>
-            <div class="bar-bg"><div class="bar-fill" style="width:${r.p}%;background:${getColor(r.f)}"></div></div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${r.p}%;background:${fCol[r.f]}"></div></div>
             <div class="badges">
               <span class="badge ${fClass[r.f]}">${fLabel[r.f]}</span>
               <span class="badge ${dClass[r.d]}">${dLabel[r.d]}</span>
             </div>
-          </div>`;
-        });
-        if(rowsHtml.replace(/<div class="row hidden"[^>]*><\/div>/g,'').trim())
-          html+=`<div class="section-head">${g.g}</div>${rowsHtml}`;
-      });
-      document.getElementById('count').textContent=`Showing ${shown} of ${total} chapters`;
-      list.innerHTML=html||`<div class="empty-state"><div class="empty-state-icon">🔍</div><p>No chapters match your filters</p></div>`;
-    }
+            <span class="expand-icon">▾</span>
+          </div>
+          <div class="row-detail">
+            <div class="detail-inner">
+              <div class="detail-grid">
+                <div class="detail-chip"><span class="detail-chip-label">Avg / Year</span><span class="detail-chip-val">${r.yr||'—'}</span></div>
+                <div class="detail-chip"><span class="detail-chip-label">Heavier in</span><span class="detail-chip-val">${r.main||'—'}</span></div>
+                <div class="detail-chip"><span class="detail-chip-label">Study Time</span><span class="detail-chip-val">${r.hrs||'—'}</span></div>
+                <div class="detail-chip"><span class="detail-chip-label">Best Book</span><span class="detail-chip-val">${r.book||'—'}</span></div>
+                <div class="detail-chip" style="grid-column:1/-1"><span class="detail-chip-label">Most tested concept</span><span class="detail-chip-val">${r.hot||'—'}</span></div>
+              </div>
 
-    function setSubject(s){subject=s;subCat='all';
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      event.target.closest('.tab').classList.add('active');
-      document.querySelectorAll('.stab').forEach(t=>{t.classList.remove('active');if(t.textContent==='All')t.classList.add('active');});
-      render();
-    }
-    function setSub(s){subCat=s;
-      document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
-      event.target.closest('.stab').classList.add('active');
-      render();
-    }
-    function setFreq(f){
-      freqF=freqF===f&&f!=='all'?'all':f;
-      diffF='all';
-      document.querySelectorAll('.filter-btn').forEach(b=>{b.classList.remove('on');if(b.classList.contains('f-all')&&(freqF==='all'&&diffF==='all'))b.classList.add('on');});
-      if(freqF!=='all'){const map={H:'f-high',M:'f-med',L:'f-low'};document.querySelector('.'+map[freqF]).classList.add('on');}
-      else document.querySelector('.f-all').classList.add('on');
-      render();
-    }
-    function setDiff(d){
-      diffF=diffF===d?'all':d;
-      freqF='all';
-      document.querySelectorAll('.filter-btn').forEach(b=>{b.classList.remove('on');if(b.classList.contains('f-all'))b.classList.add('on');});
-      if(diffF!=='all'){const map={E:'d-easy',M:'d-med',D:'d-hard'};document.querySelector('.'+map[diffF]).classList.add('on');}
-      render();
-    }
-    function applyFilters(){render();}
-    render();
-  </script>
+              <div class="detail-topics">
+                <strong>Key topics</strong>
+                <div class="topic-tags">${topicTags}</div>
+              </div>
+
+              <div>
+                <div class="detail-label">Status</div>
+                <div class="status-row">
+                  <button class="status-option ${status==='todo'?'active-todo':''}" data-s="todo"
+                    onclick="setChapterStatus('${subject}','${g.g.replace(/'/g,"\\'")}','${r.n.replace(/'/g,"\\'")}','todo')">○ Not Started</button>
+                  <button class="status-option ${status==='wip'?'active-wip':''}" data-s="wip"
+                    onclick="setChapterStatus('${subject}','${g.g.replace(/'/g,"\\'")}','${r.n.replace(/'/g,"\\'")}','wip')">⟳ In Progress</button>
+                  <button class="status-option ${status==='done'?'active-done':''}" data-s="done"
+                    onclick="setChapterStatus('${subject}','${g.g.replace(/'/g,"\\'")}','${r.n.replace(/'/g,"\\'")}','done')">✓ Done</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="detail-label">Notes & Revision date</div>
+                <div class="detail-notes-row">
+                  <textarea class="notes-input" placeholder="Add your notes, weak areas, reminders…"
+                    oninput="onNoteChange('${k.replace(/'/g,"\\'")}', this.value)">${notes}</textarea>
+                  <div>
+                    <div class="detail-label" style="margin-bottom:4px">Revision due</div>
+                    <input type="date" class="date-input" value="${date}"
+                      onchange="onDateChange('${k.replace(/'/g,"\\'")}', this.value)">
+                    <div class="save-indicator">✓ saved</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>`;
+    });
+
+    if(rowsHtml.replace(/<div class="row hidden"><\/div>/g,'').trim())
+      html += `<div class="section-head">${g.g}</div>${rowsHtml}`;
+  });
+
+  document.getElementById('count').textContent = `Showing ${shown} of ${total} chapters`;
+  list.innerHTML = html || `<div class="empty-state"><div class="empty-state-icon">🔍</div><p>No chapters match your filters.</p></div>`;
+}
+
+// ─────────────────────────────────────────────
+// FILTER SETTERS
+// ─────────────────────────────────────────────
+function clearAllFilterBtns() {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+}
+
+function setSubject(s, el) {
+  subject = s; subCat = 'all';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.stab').forEach(t => { t.classList.remove('active'); if(t.textContent==='All') t.classList.add('active'); });
+  render();
+}
+
+function setSub(s, el) {
+  subCat = s;
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function setFreq(f, el) {
+  freqF = freqF===f && f!=='all' ? 'all' : f;
+  diffF = 'all'; statF = 'all';
+  clearAllFilterBtns();
+  if(freqF==='all') document.querySelector('.f-all').classList.add('on');
+  else el.classList.add('on');
+  render();
+}
+
+function setDiff(d, el) {
+  diffF = diffF===d ? 'all' : d;
+  freqF = 'all'; statF = 'all';
+  clearAllFilterBtns();
+  document.querySelector('.f-all').classList.add('on');
+  if(diffF!=='all') el.classList.add('on');
+  render();
+}
+
+function setStatus(s, el) {
+  statF = statF===s ? 'all' : s;
+  freqF = 'all'; diffF = 'all';
+  clearAllFilterBtns();
+  document.querySelector('.f-all').classList.add('on');
+  if(statF!=='all') el.classList.add('on');
+  render();
+}
+
+// ─────────────────────────────────────────────
+// ANIMATED LEAVES
+// ─────────────────────────────────────────────
+const leafEmojis = ['🍃','🌿','🍂','🌱','🍀'];
+function spawnLeaf() {
+  const bg = document.querySelector('.bg');
+  const leaf = document.createElement('div');
+  leaf.className = 'leaf';
+  leaf.textContent = leafEmojis[Math.floor(Math.random()*leafEmojis.length)];
+  leaf.style.left = Math.random()*100 + 'vw';
+  leaf.style.fontSize = (10 + Math.random()*10) + 'px';
+  const dur = 12 + Math.random()*14;
+  leaf.style.animationDuration = dur + 's';
+  leaf.style.animationDelay = Math.random()*4 + 's';
+  bg.appendChild(leaf);
+  setTimeout(() => leaf.remove(), (dur+4)*1000);
+}
+
+// spawn leaves periodically
+setInterval(spawnLeaf, 2200);
+for(let i=0;i<5;i++) setTimeout(spawnLeaf, i*600);
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+render();
+updateProgressSummary();
+</script>
 </body>
 </html>
