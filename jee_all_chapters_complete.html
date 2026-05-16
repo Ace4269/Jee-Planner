@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JEE Chapters | Complete Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --bg-primary: #f8f7f4;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #eceae4;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f5f3ee;
+
+      --text-primary: #1a1a18;
+      --text-secondary: #5c5c56;
+      --text-tertiary: #8a8a82;
+
+      --border-primary: #e0ddd6;
+      --border-secondary: #eceae4;
+
+      --accent-green: #2d8a6e;
+      --accent-green-light: #e8f5f0;
+      --accent-green-glow: rgba(45, 138, 110, 0.15);
+      --accent-brown: #8b7355;
+      --accent-cream: #f5f0e6;
+
+      --freq-high: #2d8a6e;
+      --freq-med: #b8860b;
+      --freq-low: #7a7a72;
+
+      --diff-easy: #4a7bc7;
+      --diff-med: #c75a9a;
+      --diff-hard: #c75050;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a1b18;
+        --bg-secondary: #232420;
+        --bg-tertiary: #2d2e29;
+        --bg-card: #262824;
+        --bg-card-hover: #2e2f2a;
+
+        --text-primary: #f0f0ec;
+        --text-secondary: #a8a8a0;
+        --text-tertiary: #6b6b63;
+
+        --border-primary: #3a3a36;
+        --border-secondary: #2d2e29;
+
+        --accent-green: #4db894;
+        --accent-green-light: rgba(77, 184, 148, 0.12);
+        --accent-green-glow: rgba(77, 184, 148, 0.2);
+        --accent-brown: #c4a77d;
+        --accent-cream: #3a3832;
+
+        --freq-high: #4db894;
+        --freq-med: #d4a029;
+        --freq-low: #8a8a82;
+
+        --diff-easy: #6b9bd4;
+        --diff-med: #e076b5;
+        --diff-hard: #e07070;
+
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.25);
+        --shadow-lg: 0 8px 32px rgba(0,0,0,0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Subtle nature-inspired background */
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(ellipse 100% 80% at 0% 0%, var(--accent-green-light) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(139, 115, 85, 0.08) 0%, transparent 40%);
+    }
+
+    /* Main container */
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header h1 {
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .header p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* Subject tabs */
+    .tabs-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: fadeIn 0.6s ease-out 0.1s both;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab {
+      padding: 10px 24px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab:hover {
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+    }
+
+    .tab.active {
+      background: var(--accent-green);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Subtabs */
+    #subtabs {
+      display: none;
+      justify-content: center;
+      margin-bottom: 20px;
+      animation: fadeIn 0.6s ease-out 0.15s both;
+    }
+
+    #subtabs.visible {
+      display: flex;
+    }
+
+    .subtabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-secondary);
+    }
+
+    .stab {
+      padding: 7px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-tertiary);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .stab:hover {
+      color: var(--text-secondary);
+    }
+
+    .stab.active {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Filters */
+    .filters-container {
+      margin-bottom: 28px;
+      animation: fadeIn 0.6s ease-out 0.2s both;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 5px;
+    }
+
+    .filter-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border-secondary);
+      margin: 0 6px;
+    }
+
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border-secondary);
+      background: transparent;
+      color: var(--text-tertiary);
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--border-primary);
+      color: var(--text-secondary);
+    }
+
+    .filter-btn.on {
+      border-color: transparent;
+      font-weight: 500;
+    }
+
+    .filter-btn.f-all.on {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .filter-btn.f-high.on {
+      background: var(--accent-green-light);
+      color: var(--freq-high);
+      border-color: var(--accent-green-glow);
+    }
+
+    .filter-btn.f-med.on {
+      background: rgba(255, 176, 32, 0.12);
+      color: var(--freq-med);
+      border-color: rgba(255, 176, 32, 0.25);
+    }
+
+    .filter-btn.f-low.on {
+      background: rgba(122, 122, 114, 0.12);
+      color: var(--freq-low);
+      border-color: rgba(122, 122, 114, 0.2);
+    }
+
+    .filter-btn.f-easy.on,
+    .filter-btn.d-easy.on {
+      background: rgba(74, 123, 199, 0.12);
+      color: var(--diff-easy);
+      border-color: rgba(74, 123, 199, 0.2);
+    }
+
+    .filter-btn.f-hard.on,
+    .filter-btn.d-hard.on {
+      background: rgba(199, 80, 80, 0.12);
+      color: var(--diff-hard);
+      border-color: rgba(199, 80, 80, 0.2);
+    }
+
+    .filter-btn.d-med.on {
+      background: rgba(199, 90, 154, 0.12);
+      color: var(--diff-med);
+      border-color: rgba(199, 90, 154, 0.2);
+    }
+
+    .search-wrapper {
+      position: relative;
+      margin-left: auto;
+    }
+
+    .search {
+      padding: 7px 14px 7px 36px;
+      border-radius: 20px;
+      border: 1px solid var(--border-secondary);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      width: 160px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search:focus {
+      border-color: var(--accent-green);
+      background: var(--bg-card);
+    }
+
+    .search::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+      font-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    /* Count */
+    .count {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+      margin-bottom: 20px;
+      font-family: var(--font-mono);
+    }
+
+    /* Chapter list */
+    #list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .section-head {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 20px 0 10px;
+      padding-left: 2px;
+    }
+
+    .section-head:first-child {
+      margin-top: 0;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-secondary);
+      transition: all 0.2s ease;
+      animation: slideIn 0.3s ease-out both;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .row:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .row.hidden {
+      display: none;
+    }
+
+    .num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-tertiary);
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .name {
+      flex: 1;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .bar-bg {
+      width: 80px;
+      height: 5px;
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+    }
+
+    .fh { background: var(--accent-green-light); color: var(--freq-high); }
+    .fm { background: rgba(255, 176, 32, 0.12); color: var(--freq-med); }
+    .fl { background: rgba(122, 122, 114, 0.12); color: var(--freq-low); }
+
+    .de { background: rgba(74, 123, 199, 0.12); color: var(--diff-easy); }
+    .dm { background: rgba(199, 90, 154, 0.12); color: var(--diff-med); }
+    .dh { background: rgba(199, 80, 80, 0.12); color: var(--diff-hard); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-tertiary);
+    }
+
+    .empty-state-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .app {
+        padding: 24px 16px 40px;
+      }
+
+      .header {
+        margin-bottom: 28px;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .tab {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+      }
+
+      .tab-icon {
+        display: none;
+      }
+
+      .filters {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .filter-group {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .filter-divider {
+        display: none;
+      }
+
+      .search-wrapper {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .search {
+        width: 100%;
+      }
+
+      .row {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .num {
+        order: 0;
+        min-width: 20px;
+      }
+
+      .name {
+        order: 1;
+        width: calc(100% - 34px);
+      }
+
+      .bar-bg {
+        order: 2;
+        flex: 1;
+        min-width: 60px;
+      }
+
+      .badges {
+        order: 3;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .filter-btn {
+        padding: 5px 10px;
+        font-size: 0.7rem;
+      }
+
+      .badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+      }
+
+      .bar-bg {
+        display: none;
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-primary);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-tertiary);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+
+  <div class="app">
+    <header class="header">
+      <h1>JEE Chapter Reference</h1>
+      <p>Complete chapter importance guide — ranked by frequency & difficulty</p>
+    </header>
+
+    <div class="tabs-container">
+      <div class="tabs">
+        <button class="tab active" onclick="setSubject('phy')">
+          <span class="tab-icon">⚛</span> Physics
+        </button>
+        <button class="tab" onclick="setSubject('chem')">
+          <span class="tab-icon">🧪</span> Chemistry
+        </button>
+        <button class="tab" onclick="setSubject('math')">
+          <span class="tab-icon">∑</span> Mathematics
+        </button>
+      </div>
+    </div>
+
+    <div id="subtabs">
+      <div class="subtabs">
+        <button class="stab active" onclick="setSub('all')">All</button>
+        <button class="stab" onclick="setSub('phys')">Physical</button>
+        <button class="stab" onclick="setSub('inorg')">Inorganic</button>
+        <button class="stab" onclick="setSub('org')">Organic</button>
+      </div>
+    </div>
+
+    <div class="filters-container">
+      <div class="filters">
+        <div class="filter-group">
+          <button class="filter-btn f-all on" onclick="setFreq('all')">All</button>
+          <button class="filter-btn f-high" onclick="setFreq('H')">High</button>
+          <button class="filter-btn f-med" onclick="setFreq('M')">Medium</button>
+          <button class="filter-btn f-low" onclick="setFreq('L')">Low</button>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <button class="filter-btn d-easy" onclick="setDiff('E')">Easy</button>
+          <button class="filter-btn d-med" onclick="setDiff('M')">Medium</button>
+          <button class="filter-btn d-hard" onclick="setDiff('D')">Hard</button>
+        </div>
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input class="search" id="srch" placeholder="Search..." oninput="applyFilters()">
+        </div>
+      </div>
+    </div>
+
+    <div id="count" class="count"></div>
+    <div id="list"></div>
+  </div>
+
+  <script>
+    const D = {
+      phy: [
+        {g:"Mechanics",rows:[
+          {n:"Kinematics (1D & 2D Motion)",f:"H",d:"E",p:88},
+          {n:"Laws of Motion & Friction",f:"H",d:"E",p:85},
+          {n:"Work, Energy & Power",f:"H",d:"E",p:83},
+          {n:"Rotational Motion & Moment of Inertia",f:"H",d:"D",p:82},
+          {n:"Centre of Mass, Momentum & Collisions",f:"M",d:"M",p:72},
+          {n:"Gravitation",f:"M",d:"E",p:65},
+          {n:"Properties of Solids & Elasticity",f:"L",d:"E",p:35},
+          {n:"Surface Tension & Viscosity",f:"L",d:"M",p:30},
+          {n:"Fluid Mechanics",f:"L",d:"M",p:38},
+          {n:"Units, Dimensions & Errors",f:"M",d:"E",p:60},
+        ]},
+        {g:"Thermodynamics & Waves",rows:[
+          {n:"Thermodynamics (Laws & Processes)",f:"H",d:"M",p:80},
+          {n:"Kinetic Theory of Gases",f:"M",d:"E",p:62},
+          {n:"Thermal Properties, Calorimetry & Heat Transfer",f:"M",d:"E",p:58},
+          {n:"Simple Harmonic Motion (SHM)",f:"M",d:"M",p:65},
+          {n:"Waves — Mechanical (Sound, Superposition)",f:"M",d:"M",p:60},
+        ]},
+        {g:"Optics",rows:[
+          {n:"Ray Optics (Reflection, Refraction, Lenses)",f:"H",d:"M",p:87},
+          {n:"Wave Optics (Interference, Diffraction)",f:"H",d:"M",p:82},
+        ]},
+        {g:"Electromagnetism",rows:[
+          {n:"Electrostatics (Coulomb, Field, Potential)",f:"H",d:"D",p:95},
+          {n:"Capacitors & Dielectrics",f:"H",d:"D",p:90},
+          {n:"Current Electricity (Circuits, Kirchhoff)",f:"H",d:"M",p:93},
+          {n:"Moving Charges & Magnetic Force",f:"H",d:"M",p:78},
+          {n:"Magnetism & Matter",f:"L",d:"E",p:32},
+          {n:"Electromagnetic Induction (EMI)",f:"H",d:"D",p:90},
+          {n:"Alternating Current (AC Circuits, LCR)",f:"M",d:"D",p:68},
+          {n:"Electromagnetic Waves",f:"L",d:"E",p:28},
+        ]},
+        {g:"Modern Physics",rows:[
+          {n:"Dual Nature of Radiation & Photoelectric Effect",f:"M",d:"E",p:62},
+          {n:"Atoms & Bohr Model",f:"M",d:"E",p:60},
+          {n:"Nuclei, Radioactivity & Nuclear Reactions",f:"M",d:"E",p:58},
+          {n:"Semiconductors & Logic Gates",f:"M",d:"E",p:65},
+          {n:"Communication Systems",f:"L",d:"E",p:22},
+        ]},
+      ],
+      chem: [
+        {g:"Physical Chemistry",sub:"phys",rows:[
+          {n:"Mole Concept & Stoichiometry",f:"H",d:"E",p:90},
+          {n:"Atomic Structure",f:"M",d:"E",p:60},
+          {n:"Chemical Bonding & Molecular Structure",f:"H",d:"M",p:95},
+          {n:"States of Matter — Gas Laws",f:"M",d:"M",p:58},
+          {n:"Thermodynamics & Thermochemistry",f:"H",d:"M",p:80},
+          {n:"Chemical Equilibrium",f:"H",d:"M",p:82},
+          {n:"Ionic Equilibrium (pH, Buffers, Solubility)",f:"H",d:"M",p:80},
+          {n:"Redox Reactions & Oxidation States",f:"M",d:"E",p:55},
+          {n:"Solutions (Colligative Properties)",f:"H",d:"M",p:78},
+          {n:"Electrochemistry (Cell, EMF, Electrolysis)",f:"H",d:"M",p:88},
+          {n:"Chemical Kinetics (Rate Laws, Arrhenius)",f:"H",d:"M",p:85},
+          {n:"Solid State (Crystal Structures, Defects)",f:"M",d:"M",p:65},
+          {n:"Surface Chemistry (Adsorption, Colloids)",f:"L",d:"E",p:32},
+        ]},
+        {g:"Inorganic Chemistry",sub:"inorg",rows:[
+          {n:"Periodic Table & Periodicity in Properties",f:"M",d:"E",p:55},
+          {n:"Hydrogen & its Compounds",f:"L",d:"E",p:25},
+          {n:"s-Block Elements (Alkali & Alkaline Earth)",f:"L",d:"E",p:28},
+          {n:"p-Block — Groups 13 & 14 (B, Al, C, Si)",f:"M",d:"M",p:60},
+          {n:"p-Block — Groups 15 & 16 (N, P, O, S)",f:"H",d:"M",p:78},
+          {n:"p-Block — Groups 17 & 18 (Halogens, Noble Gases)",f:"H",d:"M",p:75},
+          {n:"d & f Block / Transition Elements",f:"H",d:"E",p:80},
+          {n:"Coordination Compounds (IUPAC, Bonding)",f:"H",d:"D",p:92},
+          {n:"Metallurgy & General Principles of Extraction",f:"L",d:"E",p:30},
+          {n:"Environmental Chemistry",f:"L",d:"E",p:20},
+        ]},
+        {g:"Organic Chemistry",sub:"org",rows:[
+          {n:"General Organic Chemistry (GOC) & Isomerism",f:"H",d:"D",p:93},
+          {n:"Hydrocarbons (Alkanes, Alkenes, Alkynes, Aromatic)",f:"M",d:"M",p:65},
+          {n:"Haloalkanes & Haloarenes (Substitution Rxns)",f:"M",d:"M",p:68},
+          {n:"Alcohols, Phenols & Ethers",f:"M",d:"M",p:65},
+          {n:"Aldehydes & Ketones (Nucleophilic Addition)",f:"H",d:"D",p:88},
+          {n:"Carboxylic Acids & Derivatives",f:"H",d:"D",p:85},
+          {n:"Amines (Basicity, Diazonium Chemistry)",f:"M",d:"M",p:68},
+          {n:"Biomolecules (Carbs, Proteins, Vitamins)",f:"M",d:"E",p:58},
+          {n:"Polymers (Addition, Condensation, Rubbers)",f:"L",d:"E",p:35},
+          {n:"Chemistry in Everyday Life",f:"L",d:"E",p:22},
+          {n:"Practical Organic Chemistry / Name Reactions",f:"M",d:"M",p:60},
+        ]},
+      ],
+      math: [
+        {g:"Algebra",rows:[
+          {n:"Sets, Relations & Functions",f:"L",d:"E",p:35},
+          {n:"Complex Numbers & Argand Plane",f:"M",d:"M",p:70},
+          {n:"Quadratic Equations & Inequalities",f:"M",d:"M",p:68},
+          {n:"Sequences & Series (AP, GP, HP, AGP)",f:"M",d:"E",p:68},
+          {n:"Binomial Theorem & its Applications",f:"M",d:"E",p:65},
+          {n:"Permutations & Combinations",f:"M",d:"M",p:65},
+          {n:"Mathematical Induction",f:"L",d:"E",p:20},
+          {n:"Matrices (Operations, Inverse, Rank)",f:"H",d:"E",p:88},
+          {n:"Determinants (Properties, Cramer's Rule)",f:"H",d:"E",p:85},
+          {n:"Mathematical Reasoning & Logic",f:"L",d:"E",p:22},
+        ]},
+        {g:"Coordinate Geometry",rows:[
+          {n:"Straight Lines & Pair of Lines",f:"M",d:"M",p:65},
+          {n:"Circles (Equations, Tangents, Chords)",f:"H",d:"M",p:88},
+          {n:"Parabola (Focus, Directrix, Tangents)",f:"H",d:"M",p:85},
+          {n:"Ellipse (Properties, Normal, Tangent)",f:"H",d:"D",p:82},
+          {n:"Hyperbola (Asymptotes, Conjugate)",f:"M",d:"D",p:70},
+        ]},
+        {g:"Trigonometry",rows:[
+          {n:"Trigonometric Ratios, Identities & Equations",f:"M",d:"M",p:68},
+          {n:"Inverse Trigonometric Functions",f:"M",d:"E",p:65},
+          {n:"Properties of Triangles & Solutions",f:"L",d:"M",p:38},
+        ]},
+        {g:"Calculus",rows:[
+          {n:"Limits & Continuity",f:"H",d:"M",p:92},
+          {n:"Differentiability & Methods of Differentiation",f:"H",d:"M",p:88},
+          {n:"Applications of Derivatives (Tangents, Maxima/Minima)",f:"H",d:"D",p:90},
+          {n:"Indefinite Integration (Methods, Standard Forms)",f:"H",d:"D",p:95},
+          {n:"Definite Integration (Properties, DUIS)",f:"H",d:"D",p:95},
+          {n:"Area under Curves",f:"H",d:"M",p:85},
+          {n:"Differential Equations (Order, Degree, Solutions)",f:"M",d:"D",p:68},
+        ]},
+        {g:"Vectors & 3D Geometry",rows:[
+          {n:"Vectors (Dot, Cross, Triple Products)",f:"H",d:"E",p:85},
+          {n:"3D Geometry (Lines, Planes, Angles)",f:"H",d:"M",p:85},
+        ]},
+        {g:"Statistics & Probability",rows:[
+          {n:"Probability (Classical, Conditional, Bayes)",f:"H",d:"M",p:88},
+          {n:"Statistics (Mean, Variance, SD)",f:"M",d:"E",p:60},
+        ]},
+      ]
+    };
+
+    let subject='phy', subCat='all', freqF='all', diffF='all';
+    const fCol={H:"#2d8a6e",M:"#b8860b",L:"#7a7a72"};
+    const fClass={H:"fh",M:"fm",L:"fl"};
+    const dClass={E:"de",M:"dm",D:"dh"};
+    const fLabel={H:"High",M:"Medium",L:"Low"};
+    const dLabel={E:"Easy",M:"Medium",D:"Hard"};
+
+    function getColor(f) {
+      return fCol[f];
+    }
+
+    function render(){
+      const srch=(document.getElementById('srch')||{value:''}).value.toLowerCase();
+      const list=document.getElementById('list');
+      const subtabs=document.getElementById('subtabs');
+      subtabs.classList.toggle('visible', subject==='chem');
+
+      let html='';
+      let total=0,shown=0;
+      const groups=D[subject];
+      groups.forEach((g, groupIndex) => {
+        if(subject==='chem'&&subCat!=='all'&&g.sub!==subCat)return;
+        let rowsHtml='';
+        let rankInGroup=0;
+        g.rows.forEach((r,i)=>{
+          total++;
+          const matchFreq=freqF==='all'||r.f===freqF;
+          const matchDiff=diffF==='all'||r.d===diffF;
+          const matchSearch=!srch||r.n.toLowerCase().includes(srch);
+          if(!matchFreq||!matchDiff||!matchSearch){
+            rowsHtml+=`<div class="row hidden" data-f="${r.f}" data-d="${r.d}"></div>`;
+            return;
+          }
+          shown++;
+          rankInGroup++;
+          const delay = (groupIndex * 0.04 + rankInGroup * 0.02).toFixed(2);
+          rowsHtml+=`<div class="row" style="animation-delay: ${delay}s" data-f="${r.f}" data-d="${r.d}">
+            <span class="num">${rankInGroup}</span>
+            <span class="name">${r.n}</span>
+            <div class="bar-bg"><div class="bar-fill" style="width:${r.p}%;background:${getColor(r.f)}"></div></div>
+            <div class="badges">
+              <span class="badge ${fClass[r.f]}">${fLabel[r.f]}</span>
+              <span class="badge ${dClass[r.d]}">${dLabel[r.d]}</span>
+            </div>
+          </div>`;
+        });
+        if(rowsHtml.replace(/<div class="row hidden"[^>]*><\/div>/g,'').trim())
+          html+=`<div class="section-head">${g.g}</div>${rowsHtml}`;
+      });
+      document.getElementById('count').textContent=`Showing ${shown} of ${total} chapters`;
+      list.innerHTML=html||`<div class="empty-state"><div class="empty-state-icon">🔍</div><p>No chapters match your filters</p></div>`;
+    }
+
+    function setSubject(s){subject=s;subCat='all';
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      event.target.closest('.tab').classList.add('active');
+      document.querySelectorAll('.stab').forEach(t=>{t.classList.remove('active');if(t.textContent==='All')t.classList.add('active');});
+      render();
+    }
+    function setSub(s){subCat=s;
+      document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+      event.target.closest('.stab').classList.add('active');
+      render();
+    }
+    function setFreq(f){
+      freqF=freqF===f&&f!=='all'?'all':f;
+      diffF='all';
+      document.querySelectorAll('.filter-btn').forEach(b=>{b.classList.remove('on');if(b.classList.contains('f-all')&&(freqF==='all'&&diffF==='all'))b.classList.add('on');});
+      if(freqF!=='all'){const map={H:'f-high',M:'f-med',L:'f-low'};document.querySelector('.'+map[freqF]).classList.add('on');}
+      else document.querySelector('.f-all').classList.add('on');
+      render();
+    }
+    function setDiff(d){
+      diffF=diffF===d?'all':d;
+      freqF='all';
+      document.querySelectorAll('.filter-btn').forEach(b=>{b.classList.remove('on');if(b.classList.contains('f-all'))b.classList.add('on');});
+      if(diffF!=='all'){const map={E:'d-easy',M:'d-med',D:'d-hard'};document.querySelector('.'+map[diffF]).classList.add('on');}
+      render();
+    }
+    function applyFilters(){render();}
+    render();
+  </script>
+</body>
+</html>
