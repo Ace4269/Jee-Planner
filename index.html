@@ -183,14 +183,20 @@ nav{
   .tpicker{gap:2px;margin-left:4px}
   .tdot{padding:4px 5px}
   #perfBtn{padding:4px 7px;font-size:0.68rem;margin-left:2px}
-  #authBtn{padding:4px 8px;font-size:0.68rem;margin-left:2px}
-  #authBtn span{display:none}
-  #authBtn.signed-in span{display:inline}
-  #authBtn.signed-in .av{width:20px;height:20px}
+  /* signed-out: show nothing (button still tappable via padding) */
+  #authBtn{padding:4px 8px;font-size:0.68rem;margin-left:2px;min-width:32px;justify-content:center}
+  #authBtn:not(.signed-in) span{display:none}
+  #authBtn:not(.signed-in)::after{content:'👤';font-size:0.85rem}
+  /* signed-in: show avatar + first name, hide sync dot label */
+  #authBtn.signed-in{gap:5px}
+  #authBtn.signed-in .av{width:22px;height:22px;flex-shrink:0}
+  #authBtn.signed-in span{display:inline;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #authBtn.signed-in #syncDot{display:none}
 }
 @media(max-width:380px){
   .tpicker{display:none}
   .ntab{padding:6px 8px;font-size:0.7rem}
+  #authBtn.signed-in span{display:none}
 }
 
 /* ── PAGES ── */
@@ -404,6 +410,35 @@ nav{
 @media(max-width:500px){.din{width:100%}}
 .svi{font-size:0.6rem;color:var(--fh);font-family:'JetBrains Mono',monospace;opacity:0;transition:opacity 0.3s;margin-top:2px}
 .svi.show{opacity:1}
+
+/* ── FOOTER ── */
+.site-footer{
+  text-align:center;padding:28px 16px 36px;
+  border-top:1px solid rgba(255,255,255,0.05);
+  margin-top:auto;
+}
+.footer-inner{display:flex;flex-direction:column;align-items:center;gap:10px}
+.footer-made{font-size:0.72rem;color:var(--t3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.footer-made a{color:var(--t2);text-decoration:none;transition:color 0.2s}
+.footer-made a:hover{color:var(--acc)}
+.bmc-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 18px;border-radius:20px;
+  background:rgba(255,213,79,0.1);border:1px solid rgba(255,213,79,0.25);
+  color:#ffd54f;font-family:inherit;font-size:0.75rem;font-weight:600;
+  cursor:pointer;text-decoration:none;transition:all 0.2s;
+}
+.bmc-btn:hover{background:rgba(255,213,79,0.18);border-color:rgba(255,213,79,0.45);transform:translateY(-1px)}
+.bmc-btn .bmc-icon{font-size:1rem}
+.share-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 16px;border-radius:20px;
+  background:transparent;border:1px solid rgba(255,255,255,0.1);
+  color:var(--t3);font-family:inherit;font-size:0.73rem;
+  cursor:pointer;transition:all 0.2s;
+}
+.share-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--glow)}
+.footer-sep{width:1px;height:12px;background:rgba(255,255,255,0.08)}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--card-s);border:1px solid var(--acc);color:var(--acc);font-size:0.75rem;padding:8px 18px;border-radius:20px;z-index:999;opacity:0;transition:all 0.3s ease;pointer-events:none;font-family:'JetBrains Mono',monospace;box-shadow:0 4px 20px rgba(0,0,0,0.4);white-space:nowrap}
@@ -624,6 +659,23 @@ nav{
 </div>
 
 </div>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-made">
+      <span>Made with ☕ by</span>
+      <a href="https://github.com/Ace4269" target="_blank" rel="noopener">Ishaan</a>
+      <div class="footer-sep"></div>
+      <a href="https://github.com/Ace4269/Jee-Planner" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+      <div class="footer-sep"></div>
+      <button class="share-btn" onclick="shareApp()">🔗 Share</button>
+    </div>
+    <a class="bmc-btn" href="https://buymeacoffee.com/ishaan" target="_blank" rel="noopener">
+      <span class="bmc-icon">☕</span>
+      <span>Buy me a coffee</span>
+    </a>
+    <div style="font-size:0.62rem;color:var(--t3);margin-top:2px">Free forever · No ads · No paywalls</div>
+  </div>
+</footer>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1079,6 +1131,15 @@ function goPage(p){
 // TOAST
 // ════════════════════════════════
 let toastTmr;
+function shareApp(){
+  const txt = '📚 JEE Planner — track chapters, study timer & session history. Free & syncs across devices!
+https://entity602forjee.vercel.app';
+  if(navigator.share){
+    navigator.share({title:'JEE Planner',text:txt,url:'https://entity602forjee.vercel.app'}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(txt).then(()=>toast('🔗 Link copied!')).catch(()=>toast('https://entity602forjee.vercel.app'));
+  }
+}
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(toastTmr);toastTmr=setTimeout(()=>e.classList.remove('show'),2200);}
 
 // ════════════════════════════════
