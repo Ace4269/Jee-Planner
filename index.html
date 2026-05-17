@@ -7,6 +7,129 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="module">
+// ════════════════════════════════
+// FIREBASE AUTH + CLOUD SYNC
+// ════════════════════════════════
+import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+                                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc }
+                                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBASj-jZ8mLKQg1RVRmrgeEx1ZnVn4hsmU",
+  authDomain:        "jee-planner-453fe.firebaseapp.com",
+  projectId:         "jee-planner-453fe",
+  storageBucket:     "jee-planner-453fe.firebasestorage.app",
+  messagingSenderId: "562134960677",
+  appId:             "1:562134960677:web:6747847b0b5c710860cdcc",
+  measurementId:     "G-J64NXG82WJ"
+};
+
+const app      = initializeApp(firebaseConfig);
+const auth     = getAuth(app);
+const db       = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+let currentUid   = null;
+let saveDebounce = null;
+let fbInitDone   = false;  // true after first onAuthStateChanged fires
+
+function setSyncDot(state){
+  const d = document.getElementById('syncDot');
+  if(!d) return;
+  d.className = state === 'idle' ? '' : state;
+}
+
+async function loadCloudData(){
+  if(!currentUid) return;
+  try{
+    setSyncDot('syncing');
+    const snap = await getDoc(doc(db, 'users', currentUid));
+    if(snap.exists()){
+      const data = snap.data();
+      if(data.chapterData) localStorage.setItem('jee_ch_v2',       JSON.stringify(data.chapterData));
+      if(data.sessions)    localStorage.setItem('jee_sessions_v2', JSON.stringify(data.sessions));
+    }
+    setSyncDot('synced');
+    if(typeof window.renderCh    === 'function') window.renderCh();
+    if(typeof window.updateStats === 'function') window.updateStats();
+  } catch(e){
+    console.error('Cloud load error:', e);
+    setSyncDot('error');
+  }
+}
+
+window._cloudSave = function(){
+  if(!currentUid) return;
+  clearTimeout(saveDebounce);
+  setSyncDot('syncing');
+  saveDebounce = setTimeout(async () => {
+    try{
+      await setDoc(doc(db, 'users', currentUid), {
+        chapterData: JSON.parse(localStorage.getItem('jee_ch_v2')       || '{}'),
+        sessions:    JSON.parse(localStorage.getItem('jee_sessions_v2') || '[]'),
+        updatedAt:   new Date().toISOString()
+      }, { merge: true });
+      setSyncDot('synced');
+      setTimeout(() => setSyncDot('idle'), 2000);
+    } catch(e){
+      console.error('Cloud save error:', e);
+      setSyncDot('error');
+    }
+  }, 1500);
+};
+
+onAuthStateChanged(auth, async user => {
+  const btn = document.getElementById('authBtn');
+  if(user){
+    currentUid = user.uid;
+    fbInitDone = true;
+    if(btn){
+      btn.classList.add('signed-in');
+      const img = user.photoURL
+        ? `<img class="av" src="${user.photoURL}" referrerpolicy="no-referrer">`
+        : '👤';
+      btn.innerHTML = `${img}<span>${user.displayName?.split(' ')[0] || 'You'}</span><div id="syncDot"></div>`;
+    }
+    await loadCloudData();
+  } else {
+    currentUid = null;
+    if(btn){
+      btn.classList.remove('signed-in');
+      btn.innerHTML = `<span>Sign in</span>`;
+    }
+    // Only show modal AFTER Firebase has confirmed sign-out state,
+    // not during the initial loading flicker or mid-popup transitions.
+    if(fbInitDone){
+      // User explicitly signed out — show modal if no local data
+      const hasLocal = localStorage.getItem('jee_ch_v2') || localStorage.getItem('jee_sessions_v2');
+      if(!hasLocal) showAuthModal();
+    } else {
+      // First load: wait a tick to let Firebase settle, THEN decide
+      setTimeout(() => {
+        fbInitDone = true;
+        if(!currentUid){
+          const hasLocal = localStorage.getItem('jee_ch_v2') || localStorage.getItem('jee_sessions_v2');
+          if(!hasLocal) showAuthModal();
+        }
+      }, 800);
+    }
+  }
+});
+
+window._signIn  = async function(){ try{ await signInWithPopup(auth, provider); } catch(e){ console.error(e); } };
+window._signOut = async function(){ if(!confirm('Sign out? Local data stays on this device.')) return; await signOut(auth); };
+window._authButtonClick = function(){ if(currentUid) window._signOut(); else showAuthModal(); };
+
+function showAuthModal(){
+  const m = document.getElementById('authModal');
+  if(m) m.classList.add('show');
+}
+window._closeAuthModal = function(){ document.getElementById('authModal')?.classList.remove('show'); };
+window._modalSignIn    = async function(){ window._closeAuthModal(); await window._signIn(); };
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%;overflow-x:hidden}
@@ -52,6 +175,23 @@ nav{
 .tdot[data-t="ember"] .tdot-swatch{background:linear-gradient(135deg,#fb923c,#7c2d12)}
 .tdot[data-t="sakura"] .tdot-swatch{background:linear-gradient(135deg,#f472b6,#831843)}
 @media(max-width:700px){.tdot span{display:none}.tdot{padding:5px 6px}.tdot-swatch{width:14px;height:14px}}
+@media(max-width:520px){
+  nav{padding:0 8px;gap:4px;height:50px}
+  .logo{font-size:0.82rem;gap:5px}
+  .logo-dot{width:6px;height:6px}
+  .ntab{padding:6px 10px;font-size:0.72rem}
+  .tpicker{gap:2px;margin-left:4px}
+  .tdot{padding:4px 5px}
+  #perfBtn{padding:4px 7px;font-size:0.68rem;margin-left:2px}
+  #authBtn{padding:4px 8px;font-size:0.68rem;margin-left:2px}
+  #authBtn span{display:none}
+  #authBtn.signed-in span{display:inline}
+  #authBtn.signed-in .av{width:20px;height:20px}
+}
+@media(max-width:380px){
+  .tpicker{display:none}
+  .ntab{padding:6px 8px;font-size:0.7rem}
+}
 
 /* ── PAGES ── */
 .page{flex:1;padding:28px 16px 80px;overflow-y:auto}
@@ -272,6 +412,63 @@ nav{
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:3px}
+
+/* ── AUTH ── */
+#authBtn{
+  display:flex;align-items:center;gap:6px;margin-left:6px;
+  padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.05);color:var(--t2);
+  font-family:inherit;font-size:0.72rem;font-weight:500;cursor:pointer;
+  transition:all 0.2s;white-space:nowrap;flex-shrink:0;
+}
+#authBtn:hover{background:rgba(255,255,255,0.1);border-color:var(--acc);color:var(--acc)}
+#authBtn.signed-in{color:var(--fh);border-color:rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)}
+#authBtn .av{width:18px;height:18px;border-radius:50%;object-fit:cover;flex-shrink:0}
+#syncDot{
+  width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);
+  flex-shrink:0;transition:background 0.3s;
+}
+#syncDot.syncing{background:#fbbf24;animation:blink 1s ease-in-out infinite}
+#syncDot.synced{background:var(--fh)}
+#syncDot.error{background:#f87171}
+/* auth modal overlay */
+#authModal{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(8px);
+}
+#authModal.show{display:flex}
+.auth-card{
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:36px 32px;max-width:360px;width:100%;
+  text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.7);
+}
+.auth-logo{font-size:2rem;margin-bottom:12px}
+.auth-title{font-size:1.1rem;font-weight:700;color:var(--t);margin-bottom:6px}
+.auth-sub{font-size:0.8rem;color:var(--t3);margin-bottom:28px;line-height:1.6}
+.google-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:12px 20px;border-radius:12px;
+  border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);
+  color:var(--t);font-family:inherit;font-size:0.88rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+}
+.google-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.22)}
+.google-btn svg{flex-shrink:0}
+.auth-skip{
+  margin-top:14px;background:none;border:none;color:var(--t3);
+  font-family:inherit;font-size:0.75rem;cursor:pointer;text-decoration:underline;
+  text-underline-offset:3px;
+}
+.auth-skip:hover{color:var(--t2)}
+.auth-features{
+  display:flex;flex-direction:column;gap:7px;margin-bottom:24px;
+  text-align:left;
+}
+.auth-feat{
+  display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--t2);
+}
+.auth-feat span:first-child{font-size:1rem;flex-shrink:0}
 </style>
 </head>
 <body data-theme="forest">
@@ -288,7 +485,29 @@ nav{
   </div>
   <div class="tpicker" id="tpicker"></div>
 <button id="perfBtn" onclick="togglePerfMode()" title="Toggle Performance Mode" style="margin-left:6px;padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-size:0.7rem;cursor:pointer;font-family:inherit;transition:all 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">⚡</button>
+
+<button id="authBtn" onclick="window._authButtonClick && window._authButtonClick()">Sign in</button>
 </nav>
+
+<!-- AUTH MODAL -->
+<div id="authModal" onclick="if(event.target===this)window._closeAuthModal()">
+  <div class="auth-card">
+    <div class="auth-logo">&#128218;</div>
+    <div class="auth-title">Save Your Progress</div>
+    <div class="auth-sub">Sign in to sync your chapter progress and study sessions across all your devices.</div>
+    <div class="auth-features">
+      <div class="auth-feat"><span>&#9729;&#65039;</span><span>Progress synced to the cloud</span></div>
+      <div class="auth-feat"><span>&#128241;</span><span>Works on any device, any browser</span></div>
+      <div class="auth-feat"><span>&#128274;</span><span>Only you can see your data</span></div>
+      <div class="auth-feat"><span>&#9851;&#65039;</span><span>Survives site updates and cache clears</span></div>
+    </div>
+    <button class="google-btn" onclick="window._modalSignIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Continue with Google
+    </button>
+    <button class="auth-skip" onclick="window._closeAuthModal()">Continue without signing in</button>
+  </div>
+</div>
 
 <!-- ══ TIMER PAGE ══ -->
 <div class="page" id="pg-timer">
@@ -874,7 +1093,7 @@ let TM={mode:'focus',subj:'All Subjects',dur:25,running:false,elapsed:0,interval
 
 const LS_S='jee_sessions_v2';
 function loadSess(){try{return JSON.parse(localStorage.getItem(LS_S))||[];}catch{return[];}}
-function saveSess(s){try{localStorage.setItem(LS_S,JSON.stringify(s));}catch{}}
+function saveSess(s){try{localStorage.setItem(LS_S,JSON.stringify(s));}catch{}if(window._cloudSave)window._cloudSave();}
 
 function fmt(s){return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
 function fmtm(s){if(s<60)return s+'m';return Math.floor(s/60)+'h '+(s%60)+'m';}
@@ -1127,7 +1346,7 @@ const CD={
 // ════════════════════════════════
 const CLS='jee_ch_v2';
 function cl(){try{return JSON.parse(localStorage.getItem(CLS))||{};}catch{return{};}}
-function cs(d){try{localStorage.setItem(CLS,JSON.stringify(d));}catch{}}
+function cs(d){try{localStorage.setItem(CLS,JSON.stringify(d));}catch{}if(window._cloudSave)window._cloudSave();}
 function ck(s,g,n){return`${s}||${g}||${n}`;}
 
 let curS='phy',curCS='all',curF='all',curD='all',curST='all';
