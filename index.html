@@ -2595,7 +2595,7 @@ function renderInbox(){
       const name = u?.displayName || u?.handle || otherUid.slice(0,8)+'...';
       const handle = u?.handle || '';
       // kick off load if not cached
-      if(!u) loadFriendByUid(otherUid).then(()=>renderInbox());
+      if(!u) loadFriendByUid(otherUid);
       return `<div class="fd-req-card">
         <div class="fd-req-av">${av}</div>
         <div class="fd-req-info">
@@ -2622,7 +2622,7 @@ function renderOutgoing(){
       const otherUid = f.to;
       const u = friendsCache[otherUid];
       const handle = u?.handle || otherUid.slice(0,8)+'...';
-      if(!u) loadFriendByUid(otherUid).then(()=>renderOutgoing());
+      if(!u) loadFriendByUid(otherUid);
       return `<div class="fd-req-card outgoing">
         <div class="fd-req-av">⏳</div>
         <div class="fd-req-info">
