@@ -216,18 +216,26 @@ window._unfriend = async function(otherUid){
 window._loadFriendships = async function(){
   if(!currentUid) return {friends:[], incoming:[], outgoing:[]};
   try{
-    // query where currentUid is in uids array — two queries (Firestore limitation)
-    const q1 = query(collection(db,'friendships'), where('uids','array-contains', currentUid));
-    const snaps = await getDocs(q1);
+    // Two simple queries: where I'm the sender, where I'm the receiver
+    // Avoids array-contains which needs a composite index
+    const [q1snaps, q2snaps] = await Promise.all([
+      getDocs(query(collection(db,'friendships'), where('from', '==', currentUid))),
+      getDocs(query(collection(db,'friendships'), where('to',   '==', currentUid)))
+    ]);
+    const seen = new Set();
     const friends=[], incoming=[], outgoing=[];
-    snaps.forEach(s=>{
+    const process = (s) => {
+      if(seen.has(s.id)) return;
+      seen.add(s.id);
       const d = s.data();
       if(d.status === 'accepted') friends.push({fid:s.id, ...d});
       else if(d.status === 'pending'){
         if(d.to === currentUid)   incoming.push({fid:s.id, ...d});
         else                      outgoing.push({fid:s.id, ...d});
       }
-    });
+    };
+    q1snaps.forEach(process);
+    q2snaps.forEach(process);
     return {friends, incoming, outgoing};
   }catch(e){ console.error('loadFriendships:', e); return {friends:[], incoming:[], outgoing:[]}; }
 };
@@ -2460,35 +2468,32 @@ let friendsCache = {}; // uid → user data
 let friendshipsData = {friends:[], incoming:[], outgoing:[]}; // cached from Firestore
 
 async function refreshFriendships(){
-  try {
-    friendshipsData = await window._loadFriendships();
-    for(const f of friendshipsData.friends){
-      const otherUid = f.uids.find(u => u !== window._currentUid());
-      if(otherUid && !friendsCache[otherUid]){
-        try {
-          const snap = await getDoc(doc(window._db(),'usernames', otherUid));
-          if(snap.exists()){
-            const h = snap.data().handle;
-            const u = await window._findUser(h);
-            if(u) friendsCache[otherUid] = u;
-          }
-        }catch(e){}
+  friendshipsData = await window._loadFriendships();
+  // parallel fetch all uncached friends
+  const toFetch = friendshipsData.friends
+    .map(f => f.uids.find(u => u !== window._currentUid()))
+    .filter(uid => uid && !friendsCache[uid]);
+  await Promise.all(toFetch.map(async uid => {
+    try{
+      const snap = await getDoc(doc(window._db(),'usernames', uid));
+      if(snap.exists()){
+        const u = await window._findUser(snap.data().handle);
+        if(u) friendsCache[uid] = u;
       }
-    }
-  } catch(e){ console.error('refreshFriendships:', e); }
-  renderInbox();
-  renderOutgoing();
-  renderFriendsList();
+    }catch(e){ console.error('refreshFriendships fetch uid:', uid, e); }
+  }));
 }
 
 function toggleMenu(){
   const drawer  = document.getElementById('menuDrawer');
   const overlay = document.getElementById('menuOverlay');
   const isOpen  = drawer.classList.contains('open');
-  if(isOpen){ closeMenu(); return; }
-  drawer.classList.add('open');
-  overlay.classList.add('show');
-  setTimeout(() => window.renderFriendsSection(), 0);
+  if(isOpen){ closeMenu(); }
+  else {
+    drawer.classList.add('open');
+    overlay.classList.add('show');
+    renderFriendsSection(); // intentionally NOT awaited — never block UI
+  }
 }
 function closeMenu(){
   document.getElementById('menuDrawer').classList.remove('open');
@@ -2554,18 +2559,26 @@ async function addFriend(){
   if(res.ok){
     input.value = '';
     toast('✉ Friend request sent to @'+handle);
-    await refreshFriendships();
-    renderFriendsSection();
+    renderFriendsSection(); // refreshFriendships called inside
   } else {
     toast('❌ '+res.err);
   }
 }
 
-window.renderFriendsSection = function(){
-  const listEl = document.getElementById('fdList');
-  if(!window._currentUid()){ listEl.innerHTML = '<div class="fd-empty">Sign in to use friends.</div>'; return; }
-  listEl.innerHTML = '<div class="fd-loading">Loading...</div>';
-  refreshFriendships(); // fire and forget — will re-render when done
+async function renderFriendsSection(){
+  if(!window._currentUid()){
+    document.getElementById('fdList').innerHTML = '<div class="fd-empty">Sign in to use friends.</div>';
+    return;
+  }
+  // show skeleton immediately so menu opens without freezing
+  document.getElementById('fdInbox').style.display = 'none';
+  document.getElementById('fdOutgoing').style.display = 'none';
+  document.getElementById('fdList').innerHTML = '<div class="fd-loading">Loading…</div>';
+  // now fetch in background
+  await refreshFriendships();
+  renderInbox();
+  renderOutgoing();
+  renderFriendsList();
 }
 
 function renderInbox(){
