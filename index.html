@@ -97,22 +97,35 @@ window._setUsername = async function(handle){
   if(handle.length < 8) return {ok:false, err:'Add numbers after @entity (e.g. entity602)'};
   handle = handle.slice(0,26);
   if(!currentUid) return {ok:false, err:'Not signed in'};
+  // re-check auth.currentUser is fresh before writing
+  const user = auth.currentUser;
+  if(!user) return {ok:false, err:'Auth session expired — please sign in again'};
   // check if handle is taken — direct doc lookup, no query index needed
   try{
     const existSnap = await getDoc(doc(db,'handles', handle));
     if(existSnap.exists() && existSnap.data().uid !== currentUid)
       return {ok:false, err:'Username already taken'};
-  }catch(e){}
-  const user = auth.currentUser;
+  }catch(e){
+    // only swallow "not found" style misses; surface real errors
+    if(e.code && e.code !== 'not-found') {
+      console.error('_setUsername availability check failed:', e);
+      return {ok:false, err:'Connection error — try again ('+e.code+')'};
+    }
+  }
   const payload = {
     handle, uid: currentUid,
-    displayName: user?.displayName || '',
-    photoURL:    user?.photoURL    || '',
+    displayName: user.displayName || '',
+    photoURL:    user.photoURL    || '',
     updatedAt:   new Date().toISOString()
   };
-  // write to BOTH collections
-  await setDoc(doc(db,'usernames', currentUid), payload); // keyed by uid (for "my username")
-  await setDoc(doc(db,'handles',   handle),     payload); // keyed by handle (for friend lookup)
+  // write to BOTH collections — both must succeed
+  try{
+    await setDoc(doc(db,'usernames', currentUid), payload); // keyed by uid (for "my username")
+    await setDoc(doc(db,'handles',   handle),     payload); // keyed by handle (for friend lookup)
+  }catch(e){
+    console.error('_setUsername write failed:', e);
+    return {ok:false, err:'Save failed — check connection ('+e.code+')'};
+  }
   localStorage.setItem('jee_username', handle);
   return {ok:true, handle};
 };
