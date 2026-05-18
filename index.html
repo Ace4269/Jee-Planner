@@ -268,10 +268,29 @@ nav{
   #perfBtn{padding:3px 6px;font-size:0.65rem;margin-left:1px}
   #authBtn{padding:3px 7px;font-size:0.65rem;margin-left:1px;min-width:28px;justify-content:center}
   #authBtn:not(.signed-in) span{display:none}
-  #authBtn:not(.signed-in)::after{content:'👤';font-size:0.8rem}
+  #authBtn:not(.signed-in)::after{content:'👤';font-size:0.85rem}
   #authBtn.signed-in .av{width:20px;height:20px}
   #authBtn.signed-in span{max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #authBtn.signed-in #syncDot{display:none}
+  /* friends drawer — full width slide-up from bottom */
+  #friendsDrawer{
+    width:100%;border-left:none;
+    border-top:1px solid rgba(255,255,255,0.08);
+    top:auto;height:72vh;border-radius:20px 20px 0 0;
+    transform:translateY(110%);
+  }
+  #friendsDrawer.open{transform:translateY(0)}
+  /* account popup — full width from top */
+  #acctPopup{
+    left:8px;right:8px;width:auto;top:56px;
+  }
+  /* friends button — slightly smaller */
+  #friendsBtn{width:42px;height:42px;font-size:1.1rem;bottom:18px;right:14px}
+  /* hourly day scroll */
+  .hourly-dayrow{padding-bottom:4px}
+  /* inner pages centered */
+  .inner{padding:16px 10px}
+  .timer-grid{gap:16px}
 }
 @media(max-width:380px){
   .tpicker{display:none}
@@ -716,45 +735,57 @@ nav{
 .hday-btn.on{background:var(--glow);border-color:var(--acc);color:var(--acc);font-weight:600}
 .hday-btn.has-data{border-color:rgba(255,255,255,0.2);color:var(--t2)}
 .hourly-chart{
-  position:relative;
-  display:grid;grid-template-columns:28px 1fr;gap:0;
-  height:140px;
+  width:100%;margin-top:4px;
 }
-.hc-ylabels{
+.hc-wrap{
+  display:flex;gap:4px;align-items:stretch;
+}
+.hc-yaxis{
   display:flex;flex-direction:column;justify-content:space-between;
-  padding-bottom:18px;
+  width:26px;flex-shrink:0;padding-bottom:16px;
 }
-.hc-ylabel{font-size:0.52rem;color:var(--t3);text-align:right;padding-right:4px;line-height:1}
-.hc-inner{
-  position:relative;overflow:hidden;border-radius:6px;
+.hc-ylabel{font-size:0.5rem;color:var(--t3);text-align:right;padding-right:3px;line-height:1}
+.hc-plot{
+  flex:1;position:relative;min-height:120px;
   background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);
+  border-radius:6px;overflow:hidden;display:flex;flex-direction:column;
 }
-.hc-grid{
-  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;
-  padding:0 0 18px 0;pointer-events:none;
+.hc-bars-area{
+  flex:1;display:flex;align-items:flex-end;gap:1px;padding:4px 3px 0;
+  position:relative;
 }
-.hc-gridline{height:1px;background:rgba(255,255,255,0.04);width:100%}
-.hc-bars{
-  position:absolute;bottom:18px;top:0;left:0;right:0;
-  display:flex;align-items:flex-end;gap:1px;padding:0 2px;
+.hc-gridlines{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  justify-content:space-between;pointer-events:none;padding:0;
 }
-.hc-bar-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative}
-.hc-seg{width:100%;transition:height 0.3s ease;min-height:0;cursor:default}
-.hc-seg:hover{filter:brightness(1.2)}
+.hc-gridline{width:100%;height:1px;background:rgba(255,255,255,0.05)}
+.hc-bar-col{
+  flex:1;display:flex;flex-direction:column;align-items:stretch;
+  justify-content:flex-end;height:100%;position:relative;z-index:1;
+}
+.hc-seg{
+  width:100%;border-radius:1px 1px 0 0;
+  transition:height 0.3s ease;
+}
+.hc-seg:first-child{border-radius:2px 2px 0 0}
 .hc-xlabels{
-  position:absolute;bottom:0;left:0;right:0;height:18px;
-  display:flex;align-items:center;padding:0 2px;
+  height:16px;display:flex;border-top:1px solid rgba(255,255,255,0.05);
+  background:rgba(0,0,0,0.15);
 }
 .hc-xlabel{
-  flex:1;text-align:center;font-size:0.48rem;color:var(--t3);
+  flex:1;text-align:center;font-size:0.46rem;color:var(--t3);
   font-family:'JetBrains Mono',monospace;
+  display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
 .hourly-legend{
-  display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;
   font-size:0.65rem;color:var(--t2);align-items:center;
 }
 .hl-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.hc-empty{
+  text-align:center;padding:24px 12px;color:var(--t3);font-size:0.75rem;line-height:1.7;
+}
 
 /* ── SIGN OUT MODAL ── */
 #signOutModal{
@@ -869,7 +900,7 @@ nav{
     <div class="acct-lbl">Your username</div>
     <div id="acctUnameSet" style="display:none">
       <div class="acct-uname">
-        <input id="acctUnameInput" placeholder="e.g. apple21" maxlength="20">
+        <input id="acctUnameInput" placeholder="e.g. ace4269" maxlength="20">
         <button class="acct-save-btn" onclick="saveUsername()">Set</button>
       </div>
       <div id="acctUnameErr" style="font-size:0.65rem;color:#f87171;margin-top:4px;display:none"></div>
@@ -1589,6 +1620,9 @@ window.restoreTimer = function(){
       b.classList.toggle('on', v===TM.dur);
     });
     updateRing();
+    // restore custom duration input
+    const ci = document.getElementById('cdurIn');
+    if(ci) ci.value = TM.dur;
     if(st.running && TM.elapsed < TM.dur*60){ TM.running=false; toggle(); }
   }catch(e){ console.error('restoreTimer:', e); }
 };
@@ -1611,25 +1645,27 @@ function toggle(){
   if(TM.running){
     clearInterval(TM.interval);TM.running=false;TM.endAt=null;
     saveTimerState();
-    if(window._cloudSave) window._cloudSave();
+    if(window._cloudSave) window._cloudSave();   // immediate cloud save on pause
     document.getElementById('startBtn').innerHTML='▶ Resume';
   } else {
     TM.running=true;
     if(!TM.sessStart) TM.sessStart=Date.now();
-    // endAt is the absolute wall-clock moment the timer should reach zero
-    // This is drift-free: tick just re-derives elapsed from endAt
     const remaining = TM.dur*60 - TM.elapsed;
     TM.endAt = Date.now() + remaining*1000;
+    saveTimerState();
+    if(window._cloudSave) window._cloudSave();   // immediate cloud save on start
     document.getElementById('startBtn').innerHTML='⏸ Pause';
     TM.interval=setInterval(()=>{
       const rem = Math.max(0, Math.round((TM.endAt - Date.now())/1000));
       TM.elapsed = TM.dur*60 - rem;
       updateRing();
-      // save every 5 seconds to reduce writes
-      if(TM.elapsed % 5 === 0) saveTimerState();
+      // save to localStorage every 10s; cloud every 30s (avoid Firestore rate limits)
+      if(TM.elapsed % 10 === 0) saveTimerState();
+      if(TM.elapsed % 30 === 0 && window._cloudSave) window._cloudSave();
       if(rem <= 0){
         clearInterval(TM.interval);TM.running=false;TM.endAt=null;
         saveTimerState();
+        if(window._cloudSave) window._cloudSave();
         recSess(TM.elapsed);
         toast(TM.mode==='focus'?'✅ Session complete! Take a break.':'☕ Break done! Back to focus.');
         setTimeout(()=>setMode(TM.mode==='focus'?'break':'focus'),900);
@@ -1654,11 +1690,19 @@ function skipT(){
 }
 
 function setMode(m){
-  TM.mode=m;TM.elapsed=0;TM.dur=MODES[m].def;TM.sessStart=null;TM.endAt=null;
-  clearInterval(TM.interval);TM.running=false;
-  document.getElementById('startBtn').innerHTML='▶ Start';
+  // only reset elapsed/sessStart if actually changing mode
+  if(m !== TM.mode){
+    if(TM.running && TM.elapsed>10) recSess(TM.elapsed);
+    clearInterval(TM.interval);TM.running=false;
+    TM.mode=m;TM.elapsed=0;TM.dur=MODES[m].def;TM.sessStart=null;TM.endAt=null;
+    document.getElementById('startBtn').innerHTML='▶ Start';
+  }
   document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('on',t.id==='mt-'+m));
   document.getElementById('tlbl').textContent=MODES[m].lbl;
+  // update duration chip to mode default if user hasn't customised
+  const ci = document.getElementById('cdurIn');
+  if(ci && parseInt(ci.value) !== TM.dur){ ci.value = TM.dur; }
+  document.querySelectorAll('.bchip').forEach(b=>b.classList.toggle('on', parseInt(b.dataset.val)===TM.dur));
   saveTimerState();
   updateRing();
 }
@@ -2112,90 +2156,98 @@ function renderWeekBars(sessions){
 
 // ── Hourly chart ──────────────────────────────────────────
 function renderHourly(sessions){
-  // build day picker — last 7 days that have data
-  const today = new Date();
-  const days = [];
-  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d);}
+  const chart = document.getElementById('hourlyChart');
+  if(!chart) return;
 
-  // pick active day (default: today or most recent with data)
+  // build day picker
+  const today = new Date();
+  const days  = [];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d); }
+
   if(!activeHourlyDay){
     const withData = days.filter(d=>sessions.some(x=>new Date(x.start).toDateString()===d.toDateString()));
     const pick = withData.length ? withData[withData.length-1] : today;
     activeHourlyDay = pick.toISOString().split('T')[0];
   }
 
-  // day picker
   const dayRow = document.getElementById('hourlyDayRow');
   if(dayRow){
-    const dayNames=['Su','Mo','Tu','We','Th','Fr','Sa'];
+    const dn=['Su','Mo','Tu','We','Th','Fr','Sa'];
     dayRow.innerHTML = days.map(d=>{
       const iso = d.toISOString().split('T')[0];
       const hasData = sessions.some(x=>new Date(x.start).toDateString()===d.toDateString());
-      const isOn = iso===activeHourlyDay;
-      return `<button class="hday-btn${isOn?' on':''}${hasData?' has-data':''}" onclick="setHourlyDay('${iso}')">${dayNames[d.getDay()]} ${d.getDate()}</button>`;
+      const isOn    = iso===activeHourlyDay;
+      return `<button class="hday-btn${isOn?' on':''}${hasData?' has-data':''}" onclick="setHourlyDay('${iso}')">${dn[d.getDay()]} ${d.getDate()}</button>`;
     }).join('');
   }
 
-  // filter sessions for active day
-  const activeDate = new Date(activeHourlyDay + 'T00:00:00');
+  const activeDate  = new Date(activeHourlyDay + 'T00:00:00');
   const daySessions = sessions.filter(x=>new Date(x.start).toDateString()===activeDate.toDateString());
 
-  // build 24-hour buckets
-  const buckets = Array.from({length:24},(_,h)=>({h,phy:0,chem:0,math:0,other:0}));
+  if(!daySessions.length){
+    chart.innerHTML = '<div class="hc-empty">No sessions recorded for this day.<br>Start a focus session to see hourly breakdown!</div>';
+    return;
+  }
+
+  // 24 hour buckets
+  const buckets = Array.from({length:24},(_,h)=>({h,phy:0,chem:0,math:0,other:0,total:0}));
   daySessions.forEach(s=>{
-    const h = new Date(s.start).getHours();
+    const h    = new Date(s.start).getHours();
     const mins = s.dur/60;
-    if(s.subj==='Physics')     buckets[h].phy   += mins;
-    else if(s.subj==='Chemistry') buckets[h].chem += mins;
-    else if(s.subj==='Mathematics') buckets[h].math += mins;
-    else buckets[h].other += mins;
+    if(s.mode!=='focus'){ buckets[h].other+=mins; }
+    else if(s.subj==='Physics')       buckets[h].phy  +=mins;
+    else if(s.subj==='Chemistry')     buckets[h].chem +=mins;
+    else if(s.subj==='Mathematics')   buckets[h].math +=mins;
+    else                              buckets[h].other+=mins;
+    buckets[h].total+=mins;
   });
 
-  // only show hours 0-23 but trim leading/trailing empty ones
+  // trim to active range
   let first=0, last=23;
-  while(first<23 && buckets[first].phy+buckets[first].chem+buckets[first].math+buckets[first].other===0) first++;
-  while(last>0   && buckets[last].phy+buckets[last].chem+buckets[last].math+buckets[last].other===0) last--;
-  // always show at least 8am-10pm if no data
-  if(first>last){ first=8; last=22; }
+  while(first<23 && buckets[first].total===0) first++;
+  while(last>0   && buckets[last].total===0)  last--;
+  if(first>last){ first=Math.max(0,first-1); last=Math.min(23,last+1); }
+  // pad one either side
+  first = Math.max(0, first-1);
+  last  = Math.min(23, last+1);
   const visible = buckets.slice(first, last+1);
 
-  const maxMins = Math.max(5, ...visible.map(b=>b.phy+b.chem+b.math+b.other));
-  const yMax = Math.ceil(maxMins/10)*10;
+  const maxMins = Math.max(1, ...visible.map(b=>b.total));
+  const yMax    = Math.ceil(maxMins/5)*5; // round up to nearest 5m
+  const ySteps  = [yMax, Math.round(yMax*0.75), Math.round(yMax*0.5), Math.round(yMax*0.25), 0];
 
-  const chart = document.getElementById('hourlyChart');
-  if(!chart) return;
-
-  const yLabels = [yMax, Math.round(yMax*0.75), Math.round(yMax*0.5), Math.round(yMax*0.25), 0]
-    .map(v=>`<div class="hc-ylabel">${v}m</div>`).join('');
+  const yLabels = ySteps.map(v=>`<div class="hc-ylabel">${v}m</div>`).join('');
 
   const bars = visible.map(b=>{
-    const tot = b.phy+b.chem+b.math+b.other;
     const segs = [
-      {v:b.phy,  c:'var(--fh)'},
-      {v:b.chem, c:'var(--de)'},
-      {v:b.math, c:'var(--dm)'},
-      {v:b.other,c:'var(--fm)'}
-    ];
+      {v:b.phy,  color:'var(--fh)'},
+      {v:b.chem, color:'var(--de)'},
+      {v:b.math, color:'var(--dm)'},
+      {v:b.other,color:'var(--fm)'}
+    ].filter(s=>s.v>0);
+
     const segHtml = segs.map(s=>{
-      const h = yMax>0 ? (s.v/yMax*100) : 0;
-      return h>0 ? `<div class="hc-seg" style="height:${h}%;background:${s.c}" title="${Math.round(s.v)}m"></div>` : '';
+      const hpct = (s.v/yMax*100).toFixed(1);
+      return `<div class="hc-seg" style="height:${hpct}%;background:${s.color}" title="${Math.round(s.v)}m"></div>`;
     }).join('');
-    return `<div class="hc-bar-col" title="${b.h}:00 — ${Math.round(tot)}m">${segHtml}</div>`;
+
+    return `<div class="hc-bar-col" title="${b.h}:00">${segHtml}</div>`;
   }).join('');
 
   const xLabels = visible.map(b=>`<div class="hc-xlabel">${b.h}</div>`).join('');
 
-  chart.innerHTML = `
-    <div class="hc-ylabels">${yLabels}</div>
-    <div class="hc-inner">
-      <div class="hc-grid">
-        <div class="hc-gridline"></div><div class="hc-gridline"></div>
-        <div class="hc-gridline"></div><div class="hc-gridline"></div>
-        <div class="hc-gridline"></div>
+  const gridLines = ySteps.map(()=>`<div class="hc-gridline"></div>`).join('');
+
+  chart.innerHTML = `<div class="hc-wrap">
+    <div class="hc-yaxis">${yLabels}</div>
+    <div class="hc-plot">
+      <div class="hc-bars-area">
+        <div class="hc-gridlines">${gridLines}</div>
+        ${bars}
       </div>
-      <div class="hc-bars">${bars}</div>
       <div class="hc-xlabels">${xLabels}</div>
-    </div>`;
+    </div>
+  </div>`;
 }
 
 function setHourlyDay(iso){
