@@ -311,6 +311,28 @@ window._modalSignIn    = async function(){ window._closeAuthModal(); await windo
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%;overflow-x:hidden;max-width:100vw}
 
+/* ══ GLOBAL ANIMATIONS ══ */
+button, .ntab, .stab, .mtab, .spill, .fb, .tdot, .fd-stab, .hday-btn, .gtab, .stopt, .bchip, .ch-hdr, .friend-hdr, .md-close, .fd-close, .md-setting-row, .friend-remove, .fd-req-acc, .fd-req-dec, .acct-save-btn, .acct-signout, .acct-uname-edit{
+  transition:all 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+button:active, .ntab:active, .stab:active, .mtab:active, .spill:active, .fb:active, .tdot:active, .fd-stab:active, .hday-btn:active, .gtab:active, .stopt:active, .bchip:active{
+  transform:scale(0.96);
+}
+@keyframes pulse-glow{
+  0%,100%{box-shadow:0 0 8px var(--glow)}
+  50%{box-shadow:0 0 20px var(--glow),0 0 30px var(--glow)}
+}
+@keyframes shimmer{
+  0%{background-position:-200% center}
+  100%{background-position:200% center}
+}
+@keyframes fade-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slide-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scale-in{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+.fade-in{animation:fade-in 0.4s ease-out}
+.slide-up{animation:slide-up 0.5s ease-out}
+.scale-in{animation:scale-in 0.3s ease-out}
+
 /* ══ THEMES ══ */
 [data-theme="forest"]{--bg:#0d1a12;--bg2:#112018;--bg3:#162a1e;--card:rgba(26,46,34,0.75);--card-s:#1a2e22;--brd:rgba(45,90,61,0.35);--brd2:rgba(45,90,61,0.2);--t:#e8f5ee;--t2:#9dc9b0;--t3:#5a8a6e;--acc:#4ade80;--acc2:#22c55e;--glow:rgba(74,222,128,0.2);--fh:#4ade80;--fm:#fbbf24;--fl:#6b7280;--de:#60a5fa;--dm:#e879f9;--dd:#f87171;--sa:0.0,0.12,0.08;--sb:0.18,0.7,0.4}
 [data-theme="ocean"]{--bg:#060d1a;--bg2:#081222;--bg3:#0a1a2e;--card:rgba(13,32,64,0.75);--card-s:#0d2040;--brd:rgba(26,74,122,0.35);--brd2:rgba(26,74,122,0.2);--t:#e0f0ff;--t2:#7ab8e8;--t3:#3a7aaa;--acc:#38bdf8;--acc2:#0ea5e9;--glow:rgba(56,189,248,0.2);--fh:#38bdf8;--fm:#fbbf24;--fl:#6b7280;--de:#a78bfa;--dm:#f472b6;--dd:#f87171;--sa:0.0,0.04,0.12;--sb:0.1,0.5,0.8}
@@ -339,11 +361,11 @@ nav{
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
 .nav-tabs{display:flex;gap:2px}
 .ntab{padding:7px 16px;border:none;background:transparent;color:var(--t3);font-family:inherit;font-size:0.8rem;font-weight:500;cursor:pointer;border-radius:8px;transition:all 0.2s;display:flex;align-items:center;gap:5px}
-.ntab:hover{color:var(--t2);background:rgba(255,255,255,0.06)}
+.ntab:hover{color:var(--t2);background:rgba(255,255,255,0.06);box-shadow:0 0 10px var(--glow)}
 .ntab.on{color:var(--acc);background:var(--glow)}
 .tpicker{display:flex;gap:4px;margin-left:8px;align-items:center}
 .tdot{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 6px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);transition:all 0.2s;font-size:0.7rem;color:rgba(255,255,255,0.4);font-family:inherit;white-space:nowrap}
-.tdot:hover{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.15)}
+.tdot:hover{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.15);box-shadow:0 0 12px var(--glow)}
 .tdot.on{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.95);border-color:rgba(255,255,255,0.25);font-weight:600}
 .tdot-swatch{width:12px;height:12px;border-radius:50%;flex-shrink:0}
 .tdot[data-t="forest"] .tdot-swatch{background:linear-gradient(135deg,#22c55e,#166534)}
@@ -370,7 +392,7 @@ nav{
   border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);
   color:var(--t2);font-size:1rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;
 }
-#menuBtn:hover{background:rgba(255,255,255,0.1);border-color:var(--acc);color:var(--acc)}
+#menuBtn:hover{background:rgba(255,255,255,0.1);border-color:var(--acc);color:var(--acc);box-shadow:0 0 15px var(--glow)}
 #menuAvatar{line-height:1;font-size:1rem}
 #menuAvatar img{width:22px;height:22px;border-radius:50%;object-fit:cover;display:block}
 #syncDot{
@@ -384,8 +406,9 @@ nav{
 
 /* ── MENU DRAWER ── */
 #menuOverlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;
-  display:none;backdrop-filter:blur(4px);
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:400;
+  display:none;backdrop-filter:blur(12px) saturate(180%);
+  -webkit-backdrop-filter:blur(12px) saturate(180%);
 }
 #menuOverlay.show{display:block}
 #menuDrawer{
@@ -397,7 +420,7 @@ nav{
 }
 #menuDrawer.open{transform:translateX(0)}
 @media(max-width:520px){
-  #menuDrawer{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,0.08);
+  #menuDrawer{width:100%;left:0;right:0;margin:auto;border-left:none;border-top:1px solid rgba(255,255,255,0.08);
     top:auto;bottom:0;height:85vh;border-radius:20px 20px 0 0;
     transform:translateY(100%);
   }
@@ -414,6 +437,16 @@ nav{
 .md-section{padding:14px 18px}
 .md-sect-lbl{font-size:0.6rem;font-weight:700;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
 .md-sep{height:1px;background:rgba(255,255,255,0.06);margin:0 18px}
+.md-credit{font-size:0.65rem;color:var(--t3);margin-bottom:4px;opacity:0.8}
+.md-credit-name{
+  font-size:0.78rem;font-weight:700;
+  background:linear-gradient(90deg,var(--acc),var(--fm),var(--acc));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 3s linear infinite;
+  text-shadow:0 0 30px var(--glow);
+  filter:drop-shadow(0 0 8px var(--glow));
+}
 .md-acct-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .md-tpicker{display:flex;flex-wrap:wrap;gap:5px}
 .md-tpicker .tdot{flex:1;min-width:70px;justify-content:center}
@@ -479,8 +512,9 @@ nav{
 }
 #friendsBtn:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,0.6),0 0 20px var(--glow)}
 #friendsOverlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;
-  display:none;backdrop-filter:blur(4px);
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:400;
+  display:none;backdrop-filter:blur(12px) saturate(180%);
+  -webkit-backdrop-filter:blur(12px) saturate(180%);
 }
 #friendsOverlay.show{display:block}
 #friendsDrawer{
@@ -523,7 +557,10 @@ nav{
 .friend-card{
   background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.06);
   border-radius:12px;margin-bottom:8px;overflow:hidden;
+  animation:fade-in 0.4s ease-out;
+  transition:border-color 0.2s,box-shadow 0.2s;
 }
+.friend-card:hover{border-color:var(--acc);box-shadow:0 4px 16px rgba(0,0,0,0.3),0 0 12px var(--glow)}
 .friend-hdr{
   display:flex;align-items:center;gap:10px;padding:11px 13px;
   cursor:pointer;transition:background 0.15s;
@@ -650,7 +687,7 @@ nav{
 .ctrls{display:flex;gap:10px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
 .cbtn{padding:11px 24px;border-radius:12px;border:none;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px}
 .cbtn.pri{background:var(--acc);color:#000}
-.cbtn.pri:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.cbtn.pri:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 4px 20px var(--glow),0 0 30px var(--glow)}
 .cbtn.sec{background:rgba(255,255,255,0.06);color:var(--t2);border:1px solid rgba(255,255,255,0.1)}
 .cbtn.sec:hover{border-color:var(--acc);color:var(--acc)}
 .cbtn.dan{background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.28)}
@@ -825,7 +862,7 @@ nav{
 .svi.show{opacity:1}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--card-s);border:1px solid var(--acc);color:var(--acc);font-size:0.75rem;padding:8px 18px;border-radius:20px;z-index:999;opacity:0;transition:all 0.3s ease;pointer-events:none;font-family:'JetBrains Mono',monospace;box-shadow:0 4px 20px rgba(0,0,0,0.4);white-space:nowrap}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--card-s);border:1px solid var(--acc);color:var(--acc);font-size:0.75rem;padding:8px 18px;border-radius:20px;z-index:999;opacity:0;transition:all 0.3s ease;pointer-events:none;font-family:'JetBrains Mono',monospace;box-shadow:0 4px 20px rgba(0,0,0,0.4),0 0 15px var(--glow);white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 ::-webkit-scrollbar{width:4px}
@@ -948,9 +985,10 @@ nav{
 
 /* ── SIGN OUT MODAL ── */
 #signOutModal{
-  position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;
   display:none;align-items:center;justify-content:center;padding:20px;
-  backdrop-filter:blur(8px);
+  backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
 }
 #signOutModal.show{display:flex}
 .so-card{
@@ -977,7 +1015,7 @@ nav{
   font-family:inherit;font-size:0.72rem;font-weight:500;cursor:pointer;
   transition:all 0.2s;white-space:nowrap;flex-shrink:0;
 }
-#authBtn:hover{background:rgba(255,255,255,0.1);border-color:var(--acc);color:var(--acc)}
+#authBtn:hover{background:rgba(255,255,255,0.1);border-color:var(--acc);color:var(--acc);box-shadow:0 0 15px var(--glow)}
 #authBtn.signed-in{color:var(--fh);border-color:rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)}
 #authBtn .av{width:18px;height:18px;border-radius:50%;object-fit:cover;flex-shrink:0}
 #syncDot{
@@ -989,9 +1027,10 @@ nav{
 #syncDot.error{background:#f87171}
 /* auth modal overlay */
 #authModal{
-  position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;
   display:none;align-items:center;justify-content:center;padding:20px;
-  backdrop-filter:blur(8px);
+  backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
 }
 #authModal.show{display:flex}
 .auth-card{
@@ -1127,6 +1166,15 @@ nav{
         <button class="fd-add-btn" onclick="addFriend()">Send ✉</button>
       </div>
       <div id="fdList" style="margin-top:8px"></div>
+    </div>
+
+    <div class="md-sep"></div>
+
+    <div class="md-section" style="padding-bottom:20px">
+      <div style="text-align:center">
+        <div class="md-credit">Made with &#10084; by</div>
+        <div class="md-credit-name">Ishaan Prajapati</div>
+      </div>
     </div>
 
   </div>
