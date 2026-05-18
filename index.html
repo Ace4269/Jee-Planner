@@ -145,27 +145,92 @@ window._findUser = async function(handle){
   handle = handle.toLowerCase().trim();
   if(!handle) return null;
   try{
-    // direct doc lookup by handle — no index required
     const hsnap = await getDoc(doc(db,'handles', handle));
     if(!hsnap.exists()) return null;
     const data = hsnap.data();
-    // fetch their chapter progress (read their users/{uid} doc)
     const usnap = await getDoc(doc(db,'users', data.uid));
+    const udata = usnap.exists() ? usnap.data() : {};
     return {
       uid:         data.uid,
       handle:      data.handle,
       displayName: data.displayName,
       photoURL:    data.photoURL,
-      chapterData: usnap.exists() ? (usnap.data().chapterData || {}) : {}
+      chapterData: udata.chapterData || {},
+      sessions:    udata.sessions    || []
     };
   }catch(e){ console.error('_findUser error:', e); return null; }
 };
 
-// Friends stored locally (list of handles)
-window._getFriends  = () => { try{ return JSON.parse(localStorage.getItem('jee_friends')||'[]'); }catch{return[];} };
-window._saveFriends = (f) => localStorage.setItem('jee_friends', JSON.stringify(f));
-window._addFriend   = (h) => { const f=window._getFriends(); if(!f.includes(h)){f.push(h);window._saveFriends(f);} };
-window._removeFriend= (h) => { window._saveFriends(window._getFriends().filter(x=>x!==h)); };
+// ── FRIEND REQUEST SYSTEM (Firestore-backed) ──────────────────
+// friendships/{uid_a}_{uid_b} (sorted) → {uids:[a,b], status:'pending'|'accepted', from:uid, createdAt}
+function _friendshipId(a, b){ return [a,b].sort().join('_'); }
+
+window._sendFriendRequest = async function(toHandle){
+  if(!currentUid) return {ok:false, err:'Not signed in'};
+  const target = await window._findUser(toHandle);
+  if(!target) return {ok:false, err:'User not found'};
+  if(target.uid === currentUid) return {ok:false, err:"That's you!"};
+  const fid = _friendshipId(currentUid, target.uid);
+  try{
+    const snap = await getDoc(doc(db,'friendships', fid));
+    if(snap.exists()){
+      const st = snap.data().status;
+      if(st === 'accepted') return {ok:false, err:'Already friends'};
+      if(st === 'pending')  return {ok:false, err:'Request already sent'};
+    }
+    await setDoc(doc(db,'friendships', fid), {
+      uids: [currentUid, target.uid],
+      from: currentUid,
+      to:   target.uid,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    return {ok:true};
+  }catch(e){ console.error('sendFriendRequest:', e); return {ok:false, err:'Error: '+e.code}; }
+};
+
+window._acceptFriendRequest = async function(fid){
+  if(!currentUid) return;
+  try{
+    await setDoc(doc(db,'friendships', fid), {status:'accepted', acceptedAt: new Date().toISOString()}, {merge:true});
+  }catch(e){ console.error('acceptFriendRequest:', e); }
+};
+
+window._declineFriendRequest = async function(fid){
+  if(!currentUid) return;
+  try{
+    // import deleteDoc dynamically since we didn't import it at top
+    const {deleteDoc} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await deleteDoc(doc(db,'friendships', fid));
+  }catch(e){ console.error('declineFriendRequest:', e); }
+};
+
+window._unfriend = async function(otherUid){
+  if(!currentUid) return;
+  try{
+    const {deleteDoc} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await deleteDoc(doc(db,'friendships', _friendshipId(currentUid, otherUid)));
+  }catch(e){ console.error('unfriend:', e); }
+};
+
+window._loadFriendships = async function(){
+  if(!currentUid) return {friends:[], incoming:[], outgoing:[]};
+  try{
+    // query where currentUid is in uids array — two queries (Firestore limitation)
+    const q1 = query(collection(db,'friendships'), where('uids','array-contains', currentUid));
+    const snaps = await getDocs(q1);
+    const friends=[], incoming=[], outgoing=[];
+    snaps.forEach(s=>{
+      const d = s.data();
+      if(d.status === 'accepted') friends.push({fid:s.id, ...d});
+      else if(d.status === 'pending'){
+        if(d.to === currentUid)   incoming.push({fid:s.id, ...d});
+        else                      outgoing.push({fid:s.id, ...d});
+      }
+    });
+    return {friends, incoming, outgoing};
+  }catch(e){ console.error('loadFriendships:', e); return {friends:[], incoming:[], outgoing:[]}; }
+};
 
 onAuthStateChanged(auth, async user => {
   const btn = document.getElementById('authBtn');
@@ -319,7 +384,7 @@ nav{
 #menuDrawer.open{transform:translateX(0)}
 @media(max-width:520px){
   #menuDrawer{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,0.08);
-    top:auto;height:85vh;border-radius:20px 20px 0 0;
+    top:auto;bottom:0;height:85vh;border-radius:20px 20px 0 0;
     transform:translateY(100%);
   }
   #menuDrawer.open{transform:translateY(0)}
@@ -479,6 +544,42 @@ nav{
 .fd-ch-dot.done{background:var(--fh)}.fd-ch-dot.wip{background:var(--fm)}.fd-ch-dot.todo{background:rgba(255,255,255,0.15)}
 .fd-ch-name{flex:1;color:var(--t2)}
 .fd-loading{text-align:center;padding:20px;color:var(--t3);font-size:0.78rem}
+
+/* friend request inbox */
+.fd-inbox{margin-bottom:14px}
+.fd-inbox-lbl{font-size:0.6rem;font-weight:700;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:7px}
+.fd-req-card{
+  background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;padding:9px 11px;margin-bottom:6px;
+  display:flex;align-items:center;gap:9px;
+}
+.fd-req-card.outgoing{border-color:rgba(255,255,255,0.05);opacity:0.7}
+.fd-req-av{width:26px;height:26px;border-radius:50%;background:var(--glow);display:flex;align-items:center;justify-content:center;font-size:0.75rem;flex-shrink:0}
+.fd-req-av img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+.fd-req-info{flex:1;min-width:0}
+.fd-req-handle{font-size:0.75rem;font-weight:600;color:var(--t);font-family:'JetBrains Mono',monospace}
+.fd-req-sub{font-size:0.62rem;color:var(--t3);margin-top:1px}
+.fd-req-btns{display:flex;gap:5px;flex-shrink:0}
+.fd-req-acc{padding:4px 10px;border-radius:7px;border:none;background:var(--acc);color:#000;font-family:inherit;font-size:0.7rem;font-weight:700;cursor:pointer;transition:all 0.2s}
+.fd-req-acc:hover{filter:brightness(1.1)}
+.fd-req-dec{padding:4px 8px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);color:#f87171;font-family:inherit;font-size:0.7rem;cursor:pointer;transition:all 0.2s}
+.fd-req-dec:hover{background:rgba(248,113,113,0.18)}
+.fd-req-pending{font-size:0.65rem;color:var(--t3);font-style:italic}
+
+/* timer stats inside friend card */
+.fd-timer-stats{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;
+  margin-bottom:10px;padding:8px;
+  background:rgba(0,0,0,0.2);border-radius:8px;
+}
+.fd-ts-cell{text-align:center}
+.fd-ts-val{font-family:'JetBrains Mono',monospace;font-size:0.78rem;font-weight:600;color:var(--acc)}
+.fd-ts-lbl{font-size:0.55rem;color:var(--t3);margin-top:2px;text-transform:uppercase;letter-spacing:0.05em}
+.fd-week-bars{display:flex;gap:3px;align-items:flex-end;height:36px;margin-bottom:10px}
+.fd-wbar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.fd-wbar-track{flex:1;width:100%;border-radius:2px;background:rgba(255,255,255,0.06);position:relative;overflow:hidden;min-height:3px;display:flex;flex-direction:column;justify-content:flex-end}
+.fd-wbar-fill{width:100%;border-radius:2px;background:var(--acc);transition:height 0.4s ease}
+.fd-wbar-lbl{font-size:0.48rem;color:var(--t3);font-family:'JetBrains Mono',monospace}
 @media(max-width:520px){
   nav{padding:0 8px;gap:4px;height:50px}
   .logo{font-size:0.82rem;gap:5px}
@@ -1002,9 +1103,14 @@ nav{
     <!-- FRIENDS SECTION -->
     <div class="md-section">
       <div class="md-sect-lbl">Friends</div>
+      <!-- inbox: pending requests to me -->
+      <div id="fdInbox" style="display:none"></div>
+      <!-- outgoing pending -->
+      <div id="fdOutgoing" style="display:none"></div>
+      <!-- add by username -->
       <div class="fd-add">
         <input id="fdAddInput" placeholder="@entity + numbers..." maxlength="20">
-        <button class="fd-add-btn" onclick="addFriend()">Add</button>
+        <button class="fd-add-btn" onclick="addFriend()">Send ✉</button>
       </div>
       <div id="fdList" style="margin-top:8px"></div>
     </div>
@@ -2350,7 +2456,29 @@ function setHourlyDay(iso){
 // ════════════════════════════════
 // UNIFIED MENU DRAWER
 // ════════════════════════════════
-let friendsCache = {};
+let friendsCache = {}; // uid → user data
+let friendshipsData = {friends:[], incoming:[], outgoing:[]}; // cached from Firestore
+
+async function refreshFriendships(){
+  friendshipsData = await window._loadFriendships();
+  // pre-load handles for any friends we don't have cached
+  for(const f of friendshipsData.friends){
+    const otherUid = f.uids.find(u => u !== window._currentUid());
+    if(otherUid && !friendsCache[otherUid]){
+      // look up by uid from handles — find their handle first
+      // we stored handle in the friendship? no. We need to look it up.
+      // friendships don't store handle; look it up via usernames/{uid}
+      try{
+        const snap = await getDoc(doc(window._db(),'usernames', otherUid));
+        if(snap.exists()){
+          const h = snap.data().handle;
+          const u = await window._findUser(h);
+          if(u) friendsCache[otherUid] = u;
+        }
+      }catch(e){}
+    }
+  }
+}
 
 function toggleMenu(){
   const drawer  = document.getElementById('menuDrawer');
@@ -2360,17 +2488,18 @@ function toggleMenu(){
   else {
     drawer.classList.add('open');
     overlay.classList.add('show');
-    renderFriendsList();
+    renderFriendsSection();
   }
 }
 function closeMenu(){
   document.getElementById('menuDrawer').classList.remove('open');
   document.getElementById('menuOverlay').classList.remove('show');
 }
-// keep old names as aliases so nothing else breaks
 function openFriends(){ toggleMenu(); }
 function closeFriends(){ closeMenu(); }
 function toggleAcctPopup(){ toggleMenu(); }
+
+// (menu functions now defined above with friends section)
 
 function updateUsernameUI(handle){
   const setEl  = document.getElementById('acctUnameSet');
@@ -2416,80 +2545,173 @@ async function addFriend(){
   const input = document.getElementById('fdAddInput');
   let handle = input.value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
   if(!handle){ toast('Enter a username'); return; }
-  // always prefix entity
   if(!handle.startsWith('entity')) handle = 'entity' + handle;
   if(!window._currentUid()){ toast('Sign in first to use friends'); return; }
-  // check not self
   const mine = await window._getMyUsername();
+  if(!mine){ toast('Set your own username first!'); return; }
   if(handle === mine){ toast("That's you!"); return; }
-  const friends = window._getFriends();
-  if(friends.includes(handle)){ toast('Already added'); return; }
-  toast('🔍 Looking up @'+handle+'...');
-  const user = await window._findUser(handle);
-  if(!user){ toast('❌ User @'+handle+' not found'); return; }
-  window._addFriend(handle);
-  friendsCache[handle] = user;
-  input.value = '';
+  toast('🔍 Sending request to @'+handle+'...');
+  const res = await window._sendFriendRequest(handle);
+  if(res.ok){
+    input.value = '';
+    toast('✉ Friend request sent to @'+handle);
+    await refreshFriendships();
+    renderFriendsSection();
+  } else {
+    toast('❌ '+res.err);
+  }
+}
+
+async function renderFriendsSection(){
+  if(!window._currentUid()){ 
+    document.getElementById('fdList').innerHTML = '<div class="fd-empty">Sign in to use friends.</div>';
+    return;
+  }
+  await refreshFriendships();
+  renderInbox();
+  renderOutgoing();
   renderFriendsList();
-  toast('✅ Added @'+handle);
+}
+
+function renderInbox(){
+  const el = document.getElementById('fdInbox');
+  const {incoming} = friendshipsData;
+  if(!incoming.length){ el.style.display='none'; return; }
+  el.style.display = '';
+  el.innerHTML = `<div class="fd-inbox">
+    <div class="fd-inbox-lbl">📬 Requests (${incoming.length})</div>
+    ${incoming.map(f => {
+      const otherUid = f.from;
+      const u = friendsCache[otherUid];
+      const av = u?.photoURL ? `<img src="${u.photoURL}" referrerpolicy="no-referrer">` : '👤';
+      const name = u?.displayName || u?.handle || otherUid.slice(0,8)+'...';
+      const handle = u?.handle || '';
+      // kick off load if not cached
+      if(!u) loadFriendByUid(otherUid).then(()=>renderInbox());
+      return `<div class="fd-req-card">
+        <div class="fd-req-av">${av}</div>
+        <div class="fd-req-info">
+          <div class="fd-req-handle">${handle ? '@'+handle : name}</div>
+          <div class="fd-req-sub">wants to be friends</div>
+        </div>
+        <div class="fd-req-btns">
+          <button class="fd-req-acc" onclick="acceptRequest('${f.fid}','${otherUid}')">✓ Accept</button>
+          <button class="fd-req-dec" onclick="declineRequest('${f.fid}')">✕</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderOutgoing(){
+  const el = document.getElementById('fdOutgoing');
+  const {outgoing} = friendshipsData;
+  if(!outgoing.length){ el.style.display='none'; return; }
+  el.style.display = '';
+  el.innerHTML = `<div class="fd-inbox">
+    <div class="fd-inbox-lbl">⏳ Pending</div>
+    ${outgoing.map(f => {
+      const otherUid = f.to;
+      const u = friendsCache[otherUid];
+      const handle = u?.handle || otherUid.slice(0,8)+'...';
+      if(!u) loadFriendByUid(otherUid).then(()=>renderOutgoing());
+      return `<div class="fd-req-card outgoing">
+        <div class="fd-req-av">⏳</div>
+        <div class="fd-req-info">
+          <div class="fd-req-handle">@${handle}</div>
+          <div class="fd-req-sub">request sent</div>
+        </div>
+        <button class="fd-req-dec" onclick="cancelRequest('${f.fid}')">Cancel</button>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 function renderFriendsList(){
   const el = document.getElementById('fdList');
-  const friends = window._getFriends();
+  const {friends} = friendshipsData;
   if(!friends.length){
-    el.innerHTML = '<div class="fd-empty">No friends added yet.<br>Enter a friend\'s username above<br>to see their chapter progress.</div>';
+    el.innerHTML = '<div class="fd-empty">No friends yet.<br>Send a friend request above!</div>';
     return;
   }
-  el.innerHTML = friends.map(h => {
-    const u = friendsCache[h];
+  el.innerHTML = friends.map(f => {
+    const otherUid = f.uids.find(u => u !== window._currentUid());
+    const u = friendsCache[otherUid];
     const pct = u ? calcFriendPct(u.chapterData) : null;
     const av = u?.photoURL ? `<img src="${u.photoURL}" referrerpolicy="no-referrer">` : '👤';
     const loading = !u;
-    return `<div class="friend-card" id="fc_${h}">
-      <div class="friend-hdr" onclick="toggleFriendCard('${h}')">
+    const handle = u?.handle || '';
+    return `<div class="friend-card" id="fc_${otherUid}">
+      <div class="friend-hdr" onclick="toggleFriendCard('${otherUid}','${f.fid}')">
         <div class="friend-av">${av}</div>
         <div class="friend-info">
-          <div class="friend-handle">@${h}</div>
+          <div class="friend-handle">${handle ? '@'+handle : '...'}</div>
           <div class="friend-dname">${u?.displayName||''}</div>
         </div>
         <div class="friend-prog">
           ${pct!==null?`<span class="friend-pct">${pct}%</span>`:''}
           ${loading?'<span style="font-size:0.65rem;color:var(--t3)">loading…</span>':''}
         </div>
-        <button class="friend-remove" onclick="removeFriend(event,'${h}')">✕</button>
+        <button class="friend-remove" onclick="removeFriend(event,'${f.fid}','${otherUid}')">✕</button>
         <span class="friend-xicon">▾</span>
       </div>
       <div class="friend-detail">
-        <div class="friend-detail-in" id="fdd_${h}">
+        <div class="friend-detail-in" id="fdd_${otherUid}">
           ${loading?'<div class="fd-loading">Loading…</div>':''}
         </div>
       </div>
     </div>`;
   }).join('');
   // load any not yet cached
-  friends.forEach(h => { if(!friendsCache[h]) loadFriend(h); });
+  friends.forEach(f => {
+    const otherUid = f.uids.find(u => u !== window._currentUid());
+    if(otherUid && !friendsCache[otherUid]) loadFriendByUid(otherUid);
+  });
 }
 
-async function loadFriend(handle){
-  const user = await window._findUser(handle);
-  if(user){
-    friendsCache[handle] = user;
-    // update just that card
-    const card = document.getElementById('fc_'+handle);
-    if(card){
-      const av = user.photoURL ? `<img src="${user.photoURL}" referrerpolicy="no-referrer">` : '👤';
-      card.querySelector('.friend-av').innerHTML = av;
-      card.querySelector('.friend-dname').textContent = user.displayName||'';
-      const pct = calcFriendPct(user.chapterData);
-      card.querySelector('.friend-prog').innerHTML = `<span class="friend-pct">${pct}%</span>`;
-      const det = document.getElementById('fdd_'+handle);
-      if(det) det.innerHTML = buildFriendDetail(user, 'phy');
+async function loadFriendByUid(uid){
+  try{
+    const snap = await getDoc(doc(window._db(),'usernames', uid));
+    if(!snap.exists()) return;
+    const h = snap.data().handle;
+    const u = await window._findUser(h);
+    if(u){
+      friendsCache[uid] = u;
+      // update card if rendered
+      const card = document.getElementById('fc_'+uid);
+      if(card){
+        const av = u.photoURL ? `<img src="${u.photoURL}" referrerpolicy="no-referrer">` : '👤';
+        card.querySelector('.friend-av').innerHTML = av;
+        card.querySelector('.friend-handle').textContent = '@'+u.handle;
+        card.querySelector('.friend-dname').textContent = u.displayName||'';
+        const pct = calcFriendPct(u.chapterData);
+        card.querySelector('.friend-prog').innerHTML = `<span class="friend-pct">${pct}%</span>`;
+        const det = document.getElementById('fdd_'+uid);
+        if(det && card.classList.contains('op')) det.innerHTML = buildFriendDetail(u, friendSubjTab[uid]||'phy');
+      }
     }
-  } else {
-    const card = document.getElementById('fc_'+handle);
-    if(card) card.querySelector('.friend-prog').innerHTML = '<span style="font-size:0.65rem;color:#f87171">not found</span>';
-  }
+  }catch(e){ console.error('loadFriendByUid:', e); }
+}
+
+async function acceptRequest(fid, fromUid){
+  await window._acceptFriendRequest(fid);
+  toast('✅ Friend accepted!');
+  await refreshFriendships();
+  renderInbox();
+  renderOutgoing();
+  renderFriendsList();
+}
+async function declineRequest(fid){
+  await window._declineFriendRequest(fid);
+  toast('Request declined');
+  await refreshFriendships();
+  renderInbox();
+}
+async function cancelRequest(fid){
+  await window._declineFriendRequest(fid);
+  toast('Request cancelled');
+  await refreshFriendships();
+  renderOutgoing();
 }
 
 function calcFriendPct(chData){
@@ -2502,37 +2724,78 @@ function calcFriendPct(chData){
   return tot ? Math.round(done/tot*100) : 0;
 }
 
-let friendSubjTab = {}; // handle → current subj tab
-function toggleFriendCard(handle){
-  const card = document.getElementById('fc_'+handle);
+let friendSubjTab = {}; // uid → current subj tab
+function toggleFriendCard(uid, fid){
+  const card = document.getElementById('fc_'+uid);
   if(!card) return;
   card.classList.toggle('op');
   if(card.classList.contains('op')){
-    const det = document.getElementById('fdd_'+handle);
-    const subj = friendSubjTab[handle]||'phy';
-    if(det && friendsCache[handle]) det.innerHTML = buildFriendDetail(friendsCache[handle], subj);
+    const det = document.getElementById('fdd_'+uid);
+    const subj = friendSubjTab[uid]||'phy';
+    if(det && friendsCache[uid]) det.innerHTML = buildFriendDetail(friendsCache[uid], subj);
   }
 }
-function setFriendSubj(handle, subj){
-  friendSubjTab[handle]=subj;
-  const det = document.getElementById('fdd_'+handle);
-  if(det && friendsCache[handle]) det.innerHTML = buildFriendDetail(friendsCache[handle], subj);
+function setFriendSubj(uid, subj){
+  friendSubjTab[uid]=subj;
+  const det = document.getElementById('fdd_'+uid);
+  if(det && friendsCache[uid]) det.innerHTML = buildFriendDetail(friendsCache[uid], subj);
 }
-function removeFriend(e, handle){
+async function removeFriend(e, fid, otherUid){
   e.stopPropagation();
-  window._removeFriend(handle);
-  delete friendsCache[handle];
+  await window._unfriend(otherUid);
+  delete friendsCache[otherUid];
+  await refreshFriendships();
   renderFriendsList();
-  toast('Removed @'+handle);
+  toast('Removed friend');
+}
+
+function calcFriendTimerStats(sessions){
+  if(!sessions || !sessions.length) return {todayFocus:0, todayBreak:0, weekDays:[]};
+  const today = new Date().toDateString();
+  const todayFocus = sessions.filter(s=>new Date(s.start).toDateString()===today&&s.mode==='focus').reduce((a,b)=>a+b.dur,0);
+  const todayBreak = sessions.filter(s=>new Date(s.start).toDateString()===today&&s.mode!=='focus').reduce((a,b)=>a+b.dur,0);
+  // last 7 days
+  const weekDays = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toDateString();
+    const mins = sessions.filter(s=>new Date(s.start).toDateString()===ds&&s.mode==='focus').reduce((a,b)=>a+Math.floor(b.dur/60),0);
+    weekDays.push({label:['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()], mins, isToday: i===0});
+  }
+  return {todayFocus, todayBreak, weekDays};
 }
 
 function buildFriendDetail(user, subj){
   const chData = user.chapterData || {};
+  const sessions = user.sessions || [];
   const tabs = ['phy','chem','math'];
   const icons = {phy:'⚛',chem:'🧪',math:'∑'};
-  let html = `<div class="fd-subj-tabs">`;
+  const uid = user.uid;
+
+  // timer stats
+  const ts = calcFriendTimerStats(sessions);
+  const maxMins = Math.max(1, ...ts.weekDays.map(d=>d.mins));
+  const weekBars = ts.weekDays.map(d=>{
+    const hpct = (d.mins/maxMins*100).toFixed(0);
+    return `<div class="fd-wbar-col">
+      <div class="fd-wbar-track"><div class="fd-wbar-fill${d.isToday?' today':''}" style="height:${hpct}%;background:${d.isToday?'var(--fh)':'var(--acc)'}"></div></div>
+      <div class="fd-wbar-lbl">${d.label}</div>
+    </div>`;
+  }).join('');
+
+  const totalSessions = sessions.filter(s=>s.mode==='focus').length;
+  const totalMins = Math.floor(sessions.filter(s=>s.mode==='focus').reduce((a,b)=>a+b.dur,0)/60);
+
+  let html = `
+  <div class="fd-timer-stats">
+    <div class="fd-ts-cell"><div class="fd-ts-val">${Math.floor(ts.todayFocus/60)}m</div><div class="fd-ts-lbl">Today</div></div>
+    <div class="fd-ts-cell"><div class="fd-ts-val">${Math.floor(ts.todayBreak/60)}m</div><div class="fd-ts-lbl">Break</div></div>
+    <div class="fd-ts-cell"><div class="fd-ts-val">${totalMins>=60?Math.floor(totalMins/60)+'h':totalMins+'m'}</div><div class="fd-ts-lbl">Total</div></div>
+  </div>
+  <div class="fd-week-bars">${weekBars}</div>
+  <div class="fd-subj-tabs">`;
   tabs.forEach(s=>{
-    html+=`<button class="fd-stab${s===subj?' on':''}" onclick="setFriendSubj('${user.handle}','${s}')">${icons[s]}</button>`;
+    html+=`<button class="fd-stab${s===subj?' on':''}" onclick="setFriendSubj('${uid}','${s}')">${icons[s]}</button>`;
   });
   html+=`</div><div class="fd-ch-list">`;
   if(CD[subj]){
