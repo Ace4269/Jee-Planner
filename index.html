@@ -216,18 +216,21 @@ window._unfriend = async function(otherUid){
 window._loadFriendships = async function(){
   if(!currentUid) return {friends:[], incoming:[], outgoing:[]};
   try{
+    console.log('[loadFriendships] Starting for uid:', currentUid);
     // Two simple queries: where I'm the sender, where I'm the receiver
     // Avoids array-contains which needs a composite index
     const [q1snaps, q2snaps] = await Promise.all([
       getDocs(query(collection(db,'friendships'), where('from', '==', currentUid))),
       getDocs(query(collection(db,'friendships'), where('to',   '==', currentUid)))
     ]);
+    console.log('[loadFriendships] Query results:', q1snaps.size, q2snaps.size);
     const seen = new Set();
     const friends=[], incoming=[], outgoing=[];
     const process = (s) => {
       if(seen.has(s.id)) return;
       seen.add(s.id);
       const d = s.data();
+      console.log('[loadFriendships] Processing doc:', s.id, d.status);
       if(d.status === 'accepted') friends.push({fid:s.id, ...d});
       else if(d.status === 'pending'){
         if(d.to === currentUid)   incoming.push({fid:s.id, ...d});
@@ -236,6 +239,7 @@ window._loadFriendships = async function(){
     };
     q1snaps.forEach(process);
     q2snaps.forEach(process);
+    console.log('[loadFriendships] Result:', {friends: friends.length, incoming: incoming.length, outgoing: outgoing.length});
     return {friends, incoming, outgoing};
   }catch(e){ console.error('loadFriendships:', e); return {friends:[], incoming:[], outgoing:[]}; }
 };
@@ -2468,11 +2472,14 @@ let friendsCache = {}; // uid → user data
 let friendshipsData = {friends:[], incoming:[], outgoing:[]}; // cached from Firestore
 
 async function refreshFriendships(){
+  console.log('[refreshFriendships] Starting');
   friendshipsData = await window._loadFriendships();
+  console.log('[refreshFriendships] Got data:', friendshipsData);
   // parallel fetch all uncached friends
   const toFetch = friendshipsData.friends
     .map(f => f.uids.find(u => u !== window._currentUid()))
     .filter(uid => uid && !friendsCache[uid]);
+  console.log('[refreshFriendships] To fetch:', toFetch);
   await Promise.all(toFetch.map(async uid => {
     try{
       const snap = await getDoc(doc(window._db(),'usernames', uid));
@@ -2482,6 +2489,7 @@ async function refreshFriendships(){
       }
     }catch(e){ console.error('refreshFriendships fetch uid:', uid, e); }
   }));
+  console.log('[refreshFriendships] Done');
 }
 
 function toggleMenu(){
@@ -2566,6 +2574,7 @@ async function addFriend(){
 }
 
 async function renderFriendsSection(){
+  console.log('[renderFriendsSection] Start, currentUid:', window._currentUid());
   if(!window._currentUid()){
     document.getElementById('fdList').innerHTML = '<div class="fd-empty">Sign in to use friends.</div>';
     return;
@@ -2576,9 +2585,11 @@ async function renderFriendsSection(){
   document.getElementById('fdList').innerHTML = '<div class="fd-loading">Loading…</div>';
   // now fetch in background
   await refreshFriendships();
+  console.log('[renderFriendsSection] After refresh, calling render functions');
   renderInbox();
   renderOutgoing();
   renderFriendsList();
+  console.log('[renderFriendsSection] Done');
 }
 
 function renderInbox(){
