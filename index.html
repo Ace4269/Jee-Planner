@@ -186,6 +186,7 @@ onAuthStateChanged(auth, async user => {
     const ss = document.getElementById('acctSepSignout'); if(ss) ss.style.display='none';
     const si = document.getElementById('acctSigninRow'); if(si) si.style.display='flex';
     const ur = document.getElementById('acctUnameRow'); if(ur) ur.style.display='none';
+    if(btn) btn.innerHTML = `<span class="auth-icon" style="display:flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span><span class="auth-label">Sign in</span>`;
     if(fbInitDone){
       const hasLocal = localStorage.getItem('jee_ch_v2') || localStorage.getItem('jee_sessions_v2');
       if(!hasLocal) showAuthModal();
@@ -266,11 +267,12 @@ nav{
   .tpicker{gap:2px;margin-left:3px}
   .tdot{padding:3px 4px}
   #perfBtn{padding:3px 6px;font-size:0.65rem;margin-left:1px}
-  #authBtn{padding:3px 7px;font-size:0.65rem;margin-left:1px;min-width:28px;justify-content:center}
-  #authBtn:not(.signed-in) span{display:none}
-  #authBtn:not(.signed-in)::after{content:'👤';font-size:0.85rem}
+  #authBtn{padding:3px 8px;font-size:0.65rem;margin-left:1px;min-width:32px;min-height:28px;justify-content:center}
+  #authBtn:not(.signed-in) .auth-label{display:none}
+  #authBtn:not(.signed-in) .auth-icon{display:flex}
+  #authBtn.signed-in .auth-icon{display:none}
   #authBtn.signed-in .av{width:20px;height:20px}
-  #authBtn.signed-in span{max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #authBtn.signed-in span:not(.auth-icon){max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #authBtn.signed-in #syncDot{display:none}
   /* friends drawer — full width slide-up from bottom */
   #friendsDrawer{
@@ -723,9 +725,11 @@ nav{
 
 /* ── HOURLY CHART ── */
 .hourly-dayrow{
-  display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;
-  scrollbar-width:thin;
+  display:flex;gap:4px;overflow-x:auto;margin-bottom:10px;
+  scrollbar-width:none;-ms-overflow-style:none;
+  touch-action:pan-x;
 }
+.hourly-dayrow::-webkit-scrollbar{display:none}
 .hday-btn{
   flex-shrink:0;padding:4px 10px;border-radius:8px;
   border:1px solid rgba(255,255,255,0.08);background:transparent;
@@ -1620,9 +1624,14 @@ window.restoreTimer = function(){
       b.classList.toggle('on', v===TM.dur);
     });
     updateRing();
-    // restore custom duration input
     const ci = document.getElementById('cdurIn');
     if(ci) ci.value = TM.dur;
+    // safety: if paused but elapsed is somehow at full duration, just reset
+    if(!st.running && TM.elapsed >= TM.dur*60){
+      TM.elapsed=0; TM.sessStart=null; TM.endAt=null;
+      updateRing();
+    }
+    // resume if it was running and still has time left
     if(st.running && TM.elapsed < TM.dur*60){ TM.running=false; toggle(); }
   }catch(e){ console.error('restoreTimer:', e); }
 };
@@ -1643,27 +1652,36 @@ function updateRing(){
 
 function toggle(){
   if(TM.running){
-    clearInterval(TM.interval);TM.running=false;TM.endAt=null;
+    // stop interval FIRST, then null endAt so no stray tick can fire
+    const iv = TM.interval;
+    TM.interval = null;
+    clearInterval(iv);
+    TM.running = false;
+    TM.endAt   = null;
+    // cap elapsed so it can never be saved at exactly dur*60 while paused
+    TM.elapsed = Math.min(TM.elapsed, TM.dur*60 - 1);
     saveTimerState();
-    if(window._cloudSave) window._cloudSave();   // immediate cloud save on pause
+    if(window._cloudSave) window._cloudSave();
     document.getElementById('startBtn').innerHTML='▶ Resume';
   } else {
-    TM.running=true;
-    if(!TM.sessStart) TM.sessStart=Date.now();
-    const remaining = TM.dur*60 - TM.elapsed;
+    TM.running = true;
+    if(!TM.sessStart) TM.sessStart = Date.now();
+    const remaining = Math.max(1, TM.dur*60 - TM.elapsed);
     TM.endAt = Date.now() + remaining*1000;
     saveTimerState();
-    if(window._cloudSave) window._cloudSave();   // immediate cloud save on start
+    if(window._cloudSave) window._cloudSave();
     document.getElementById('startBtn').innerHTML='⏸ Pause';
-    TM.interval=setInterval(()=>{
-      const rem = Math.max(0, Math.round((TM.endAt - Date.now())/1000));
+    TM.interval = setInterval(()=>{
+      // guard: if endAt was cleared (pause happened), abort tick
+      if(!TM.endAt || !TM.running) return;
+      const rem = Math.max(0, Math.round((TM.endAt - Date.now()) / 1000));
       TM.elapsed = TM.dur*60 - rem;
       updateRing();
-      // save to localStorage every 10s; cloud every 30s (avoid Firestore rate limits)
       if(TM.elapsed % 10 === 0) saveTimerState();
       if(TM.elapsed % 30 === 0 && window._cloudSave) window._cloudSave();
       if(rem <= 0){
-        clearInterval(TM.interval);TM.running=false;TM.endAt=null;
+        const iv2 = TM.interval; TM.interval=null; clearInterval(iv2);
+        TM.running=false; TM.endAt=null;
         saveTimerState();
         if(window._cloudSave) window._cloudSave();
         recSess(TM.elapsed);
