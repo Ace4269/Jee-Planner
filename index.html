@@ -2476,18 +2476,19 @@ async function refreshFriendships(){
       }
     }
   } catch(e){ console.error('refreshFriendships:', e); }
+  renderInbox();
+  renderOutgoing();
+  renderFriendsList();
 }
 
 function toggleMenu(){
   const drawer  = document.getElementById('menuDrawer');
   const overlay = document.getElementById('menuOverlay');
   const isOpen  = drawer.classList.contains('open');
-  if(isOpen){ closeMenu(); }
-  else {
-    drawer.classList.add('open');
-    overlay.classList.add('show');
-    renderFriendsSection();
-  }
+  if(isOpen){ closeMenu(); return; }
+  drawer.classList.add('open');
+  overlay.classList.add('show');
+  setTimeout(() => window.renderFriendsSection(), 0);
 }
 function closeMenu(){
   document.getElementById('menuDrawer').classList.remove('open');
@@ -2560,15 +2561,11 @@ async function addFriend(){
   }
 }
 
-window.renderFriendsSection = async function(){
-  if(!window._currentUid()){ 
-    document.getElementById('fdList').innerHTML = '<div class="fd-empty">Sign in to use friends.</div>';
-    return;
-  }
-  try { await refreshFriendships(); } catch(e) { console.error('refreshFriendships:',e); }
-  renderInbox();
-  renderOutgoing();
-  renderFriendsList();
+window.renderFriendsSection = function(){
+  const listEl = document.getElementById('fdList');
+  if(!window._currentUid()){ listEl.innerHTML = '<div class="fd-empty">Sign in to use friends.</div>'; return; }
+  listEl.innerHTML = '<div class="fd-loading">Loading...</div>';
+  refreshFriendships(); // fire and forget — will re-render when done
 }
 
 function renderInbox(){
