@@ -91,8 +91,11 @@ window._currentUser  = () => auth.currentUser;
 window._db           = () => db;
 
 window._setUsername = async function(handle){
-  handle = handle.toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);
-  if(!handle || handle.length < 3) return {ok:false, err:'Username must be 3–20 chars (letters, numbers, _)'};
+  // enforce entity prefix
+  handle = handle.toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(!handle.startsWith('entity')) handle = 'entity' + handle;
+  if(handle.length < 8) return {ok:false, err:'Add numbers after @entity (e.g. entity602)'};
+  handle = handle.slice(0,26);
   if(!currentUid) return {ok:false, err:'Not signed in'};
   // check if handle is taken — direct doc lookup, no query index needed
   try{
@@ -156,22 +159,18 @@ onAuthStateChanged(auth, async user => {
   if(user){
     currentUid = user.uid;
     fbInitDone = true;
-    if(btn){
-      btn.classList.add('signed-in');
-      const img = user.photoURL
-        ? `<img class="av" src="${user.photoURL}" referrerpolicy="no-referrer">`
-        : '👤';
-      btn.innerHTML = `${img}<span>${user.displayName?.split(' ')[0] || 'You'}</span><div id="syncDot"></div>`;
-    }
-    // update account popup
+    // update menu button to show avatar
+    const menuAv = document.getElementById('menuAvatar');
+    if(menuAv) menuAv.innerHTML = user.photoURL
+      ? `<img src="${user.photoURL}" referrerpolicy="no-referrer">`
+      : user.displayName?.charAt(0)||'👤';
+    // update menu drawer account section
     const av = document.getElementById('acctAv');
     if(av) av.innerHTML = user.photoURL ? `<img src="${user.photoURL}" referrerpolicy="no-referrer">` : '👤';
     const nm = document.getElementById('acctName'); if(nm) nm.textContent = user.displayName || 'Signed in';
     const em = document.getElementById('acctEmail'); if(em) em.textContent = user.email || '';
-    const so = document.getElementById('acctSignoutBtn'); if(so) so.style.display='';
-    const ss = document.getElementById('acctSepSignout'); if(ss) ss.style.display='';
+    const sic= document.getElementById('acctSignedInContent'); if(sic) sic.style.display='';
     const si = document.getElementById('acctSigninRow'); if(si) si.style.display='none';
-    const ur = document.getElementById('acctUnameRow'); if(ur) ur.style.display='';
     await loadCloudData();
     // load username
     const handle = await window._getMyUsername();
@@ -182,14 +181,13 @@ onAuthStateChanged(auth, async user => {
       btn.classList.remove('signed-in');
       btn.innerHTML = `<span>Sign in</span>`;
     }
+    const menuAv2 = document.getElementById('menuAvatar');
+    if(menuAv2) menuAv2.innerHTML = '☰';
     const av = document.getElementById('acctAv'); if(av) av.innerHTML='👤';
     const nm = document.getElementById('acctName'); if(nm) nm.textContent='Not signed in';
     const em = document.getElementById('acctEmail'); if(em) em.textContent='';
-    const so = document.getElementById('acctSignoutBtn'); if(so) so.style.display='none';
-    const ss = document.getElementById('acctSepSignout'); if(ss) ss.style.display='none';
+    const sic= document.getElementById('acctSignedInContent'); if(sic) sic.style.display='none';
     const si = document.getElementById('acctSigninRow'); if(si) si.style.display='flex';
-    const ur = document.getElementById('acctUnameRow'); if(ur) ur.style.display='none';
-    if(btn) btn.innerHTML = `<span class="auth-icon" style="display:flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span><span class="auth-label">Sign in</span>`;
     if(fbInitDone){
       const hasLocal = localStorage.getItem('jee_ch_v2') || localStorage.getItem('jee_sessions_v2');
       if(!hasLocal) showAuthModal();
@@ -219,7 +217,7 @@ window._modalSignIn    = async function(){ window._closeAuthModal(); await windo
 </script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;width:100%;overflow-x:hidden}
+html,body{height:100%;width:100%;overflow-x:hidden;max-width:100vw}
 
 /* ══ THEMES ══ */
 [data-theme="forest"]{--bg:#0d1a12;--bg2:#112018;--bg3:#162a1e;--card:rgba(26,46,34,0.75);--card-s:#1a2e22;--brd:rgba(45,90,61,0.35);--brd2:rgba(45,90,61,0.2);--t:#e8f5ee;--t2:#9dc9b0;--t3:#5a8a6e;--acc:#4ade80;--acc2:#22c55e;--glow:rgba(74,222,128,0.2);--fh:#4ade80;--fm:#fbbf24;--fl:#6b7280;--de:#60a5fa;--dm:#e879f9;--dd:#f87171;--sa:0.0,0.12,0.08;--sb:0.18,0.7,0.4}
@@ -263,55 +261,80 @@ nav{
 .tdot[data-t="sakura"] .tdot-swatch{background:linear-gradient(135deg,#f472b6,#831843)}
 @media(max-width:700px){.tdot span{display:none}.tdot{padding:5px 6px}.tdot-swatch{width:14px;height:14px}}
 @media(max-width:520px){
-  nav{padding:0 8px;gap:3px;height:50px}
-  .logo{font-size:0.8rem;gap:4px}
-  .logo-dot{width:5px;height:5px}
-  .ntab{padding:5px 9px;font-size:0.7rem}
-  .tpicker{gap:2px;margin-left:3px}
-  .tdot{padding:3px 4px}
-  #perfBtn{padding:3px 6px;font-size:0.65rem;margin-left:1px}
-  #authBtn{padding:3px 8px;font-size:0.65rem;margin-left:1px;min-width:32px;min-height:28px;justify-content:center}
-  #authBtn:not(.signed-in) .auth-label{display:none}
-  #authBtn:not(.signed-in) .auth-icon{display:flex}
-  #authBtn.signed-in .auth-icon{display:none}
-  #authBtn.signed-in .av{width:20px;height:20px}
-  #authBtn.signed-in span:not(.auth-icon){max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #authBtn.signed-in #syncDot{display:none}
-  /* friends drawer — full width slide-up from bottom */
-  #friendsDrawer{
-    width:100%;border-left:none;
-    border-top:1px solid rgba(255,255,255,0.08);
-    top:auto;height:72vh;border-radius:20px 20px 0 0;
-    transform:translateY(110%);
-  }
-  #friendsDrawer.open{transform:translateY(0)}
-  /* account popup — full width from top */
-  #acctPopup{
-    left:8px;right:8px;width:auto;top:56px;
-  }
-  /* friends button — slightly smaller */
-  #friendsBtn{width:42px;height:42px;font-size:1.1rem;bottom:18px;right:14px}
-  /* hourly day scroll */
-  .hourly-dayrow{padding-bottom:4px}
-  /* inner pages centered */
-  .inner{padding:16px 10px}
-  .timer-grid{gap:16px}
-}
-@media(max-width:380px){
-  .tpicker{display:none}
-  .ntab{padding:5px 7px;font-size:0.68rem}
-  #authBtn.signed-in span{display:none}
+  nav{padding:0 10px;gap:4px;height:50px}
+  .logo{font-size:0.82rem}
+  .ntab{padding:5px 11px;font-size:0.72rem}
+  .inner{padding:14px 10px}
+  .timer-grid{gap:14px}
+  /* contain hourly chart overflow */
+  .hourly-dayrow{max-width:100%;overflow-x:auto}
+  #gv-hourly{overflow:hidden;max-width:100%}
 }
 
-/* ── ACCOUNT POPUP ── */
-#acctPopup{
-  position:fixed;top:58px;right:12px;width:260px;
-  background:var(--bg2);border:1px solid rgba(255,255,255,0.1);
-  border-radius:16px;padding:18px;z-index:500;
-  box-shadow:0 12px 48px rgba(0,0,0,0.7);
-  display:none;flex-direction:column;gap:12px;
+/* ── MENU BUTTON ── */
+#menuBtn{
+  margin-left:auto;display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);
+  color:var(--t2);font-size:1rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;
 }
-#acctPopup.show{display:flex}
+#menuBtn:hover{background:rgba(255,255,255,0.1);border-color:var(--acc);color:var(--acc)}
+#menuAvatar{line-height:1;font-size:1rem}
+#menuAvatar img{width:22px;height:22px;border-radius:50%;object-fit:cover;display:block}
+#syncDot{
+  width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);
+  position:absolute;bottom:2px;right:2px;
+}
+#menuBtn{position:relative}
+#syncDot.syncing{background:#fbbf24;animation:blink 1s ease-in-out infinite}
+#syncDot.synced{background:var(--fh)}
+#syncDot.error{background:#f87171}
+
+/* ── MENU DRAWER ── */
+#menuOverlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;
+  display:none;backdrop-filter:blur(4px);
+}
+#menuOverlay.show{display:block}
+#menuDrawer{
+  position:fixed;right:0;top:0;bottom:0;width:300px;max-width:90vw;
+  background:var(--bg2);border-left:1px solid rgba(255,255,255,0.08);
+  z-index:401;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform 0.28s cubic-bezier(0.32,0,0.2,1);
+  overflow:hidden;
+}
+#menuDrawer.open{transform:translateX(0)}
+@media(max-width:520px){
+  #menuDrawer{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,0.08);
+    top:auto;height:85vh;border-radius:20px 20px 0 0;
+    transform:translateY(100%);
+  }
+  #menuDrawer.open{transform:translateY(0)}
+}
+.md-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;
+}
+.md-title{font-size:0.9rem;font-weight:700;color:var(--t)}
+.md-close{background:none;border:none;color:var(--t3);font-size:1.1rem;cursor:pointer;padding:4px 6px;border-radius:6px;transition:all 0.2s}
+.md-close:hover{color:var(--t);background:rgba(255,255,255,0.08)}
+.md-body{flex:1;overflow-y:auto;padding:0}
+.md-section{padding:14px 18px}
+.md-sect-lbl{font-size:0.6rem;font-weight:700;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.md-sep{height:1px;background:rgba(255,255,255,0.06);margin:0 18px}
+.md-acct-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.md-tpicker{display:flex;flex-wrap:wrap;gap:5px}
+.md-tpicker .tdot{flex:1;min-width:70px;justify-content:center}
+.md-setting-row{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.03);color:var(--t2);font-family:inherit;font-size:0.78rem;
+  cursor:pointer;transition:all 0.2s;
+}
+.md-setting-row:hover{background:rgba(255,255,255,0.07);border-color:var(--acc);color:var(--acc)}
+.md-setting-row.on{border-color:var(--acc);color:var(--acc);background:var(--glow)}
+
+/* ── ACCOUNT (shared styles) ── */
 .acct-head{display:flex;align-items:center;gap:10px}
 .acct-av{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--glow);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
 .acct-av img{width:36px;height:36px;border-radius:50%;object-fit:cover}
@@ -320,7 +343,8 @@ nav{
 .acct-sep{height:1px;background:rgba(255,255,255,0.07)}
 .acct-row{display:flex;flex-direction:column;gap:5px}
 .acct-lbl{font-size:0.62rem;font-weight:700;color:var(--t3);letter-spacing:0.07em;text-transform:uppercase}
-.acct-uname{display:flex;gap:6px}
+.acct-uname{display:flex;align-items:center;gap:4px}
+.acct-uname-prefix{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--acc);font-weight:600;flex-shrink:0}
 .acct-uname input{
   flex:1;padding:6px 10px;border-radius:8px;
   border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);
@@ -887,62 +911,91 @@ nav{
     <button class="ntab on" id="nt-timer" onclick="goPage('timer')">⏱ Timer</button>
     <button class="ntab" id="nt-chapters" onclick="goPage('chapters')">📚 Chapters</button>
   </div>
-  <div class="tpicker" id="tpicker"></div>
-<button id="perfBtn" onclick="togglePerfMode()" title="Toggle Performance Mode" style="margin-left:6px;padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-size:0.7rem;cursor:pointer;font-family:inherit;transition:all 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">⚡</button>
-
-<button id="authBtn" onclick="toggleAcctPopup()">Sign in</button>
+  <button id="menuBtn" onclick="toggleMenu()" title="Menu" aria-label="Menu">
+    <span id="menuAvatar">☰</span>
+  </button>
 </nav>
 
-<!-- ACCOUNT POPUP -->
-<div id="acctPopup">
-  <div class="acct-head">
-    <div class="acct-av" id="acctAv">👤</div>
-    <div>
-      <div class="acct-name" id="acctName">Not signed in</div>
-      <div class="acct-email" id="acctEmail"></div>
-    </div>
+<!-- UNIFIED MENU DRAWER -->
+<div id="menuOverlay" onclick="closeMenu()"></div>
+<div id="menuDrawer">
+  <div class="md-header">
+    <div class="md-title">Menu</div>
+    <button class="md-close" onclick="closeMenu()">✕</button>
   </div>
-  <div class="acct-sep"></div>
-  <div class="acct-row" id="acctUnameRow">
-    <div class="acct-lbl">Your username</div>
-    <div id="acctUnameSet" style="display:none">
-      <div class="acct-uname">
-        <input id="acctUnameInput" placeholder="e.g. ace4269" maxlength="20">
-        <button class="acct-save-btn" onclick="saveUsername()">Set</button>
-      </div>
-      <div id="acctUnameErr" style="font-size:0.65rem;color:#f87171;margin-top:4px;display:none"></div>
-    </div>
-    <div id="acctUnameDisp" style="display:none">
-      <div class="acct-uname-disp">
-        @<span id="acctUnameTxt"></span>
-        <button class="acct-uname-edit" onclick="showUsernameEdit()">change</button>
-      </div>
-    </div>
-  </div>
-  <div class="acct-sep" id="acctSepSignout"></div>
-  <button class="acct-signout" id="acctSignoutBtn" onclick="window._signOut()">Sign out</button>
-  <div id="acctSigninRow" style="display:none;flex-direction:column;gap:8px">
-    <button class="google-btn" style="font-size:0.8rem;padding:9px 14px" onclick="window._modalSignIn()">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-      Sign in with Google
-    </button>
-  </div>
-</div>
+  <div class="md-body">
 
-<!-- FRIENDS BUTTON + DRAWER -->
-<button id="friendsBtn" onclick="openFriends()" title="Friends Progress">👥</button>
-<div id="friendsOverlay" onclick="closeFriends()"></div>
-<div id="friendsDrawer">
-  <div class="fd-header">
-    <div class="fd-title">👥 Friends</div>
-    <button class="fd-close" onclick="closeFriends()">✕</button>
-  </div>
-  <div class="fd-body">
-    <div class="fd-add">
-      <input id="fdAddInput" placeholder="Enter username..." maxlength="20">
-      <button class="fd-add-btn" onclick="addFriend()">Add</button>
+    <!-- ACCOUNT SECTION -->
+    <div class="md-section">
+      <div class="md-sect-lbl">Account</div>
+      <div class="md-acct-head">
+        <div class="acct-av" id="acctAv">👤</div>
+        <div style="min-width:0">
+          <div class="acct-name" id="acctName">Not signed in</div>
+          <div class="acct-email" id="acctEmail"></div>
+        </div>
+      </div>
+      <!-- signed-in content -->
+      <div id="acctSignedInContent" style="display:none">
+        <div class="acct-row" id="acctUnameRow">
+          <div class="acct-lbl">Your username</div>
+          <div id="acctUnameSet">
+            <div class="acct-uname">
+              <span class="acct-uname-prefix">@entity</span>
+              <input id="acctUnameInput" placeholder="602" maxlength="10" style="width:70px">
+              <button class="acct-save-btn" onclick="saveUsername()">Set</button>
+            </div>
+            <div id="acctUnameErr" style="font-size:0.65rem;color:#f87171;margin-top:4px;display:none"></div>
+          </div>
+          <div id="acctUnameDisp" style="display:none">
+            <div class="acct-uname-disp">
+              @entity<span id="acctUnameTxt"></span>
+              <button class="acct-uname-edit" onclick="showUsernameEdit()">change</button>
+            </div>
+          </div>
+        </div>
+        <button class="acct-signout" onclick="window._signOut()" style="width:100%;margin-top:8px">Sign out</button>
+      </div>
+      <!-- signed-out content -->
+      <div id="acctSigninRow" style="display:flex;flex-direction:column;gap:8px">
+        <button class="google-btn" onclick="window._modalSignIn()">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+          Sign in with Google
+        </button>
+      </div>
     </div>
-    <div id="fdList"></div>
+
+    <div class="md-sep"></div>
+
+    <!-- THEME SECTION -->
+    <div class="md-section">
+      <div class="md-sect-lbl">Theme</div>
+      <div class="md-tpicker" id="tpicker"></div>
+    </div>
+
+    <div class="md-sep"></div>
+
+    <!-- SETTINGS SECTION -->
+    <div class="md-section">
+      <div class="md-sect-lbl">Settings</div>
+      <button id="perfBtn" class="md-setting-row" onclick="togglePerfMode()">
+        <span>⚡ Performance mode</span>
+        <span id="perfLabel" style="font-size:0.68rem;color:var(--t3)">Off</span>
+      </button>
+    </div>
+
+    <div class="md-sep"></div>
+
+    <!-- FRIENDS SECTION -->
+    <div class="md-section">
+      <div class="md-sect-lbl">Friends</div>
+      <div class="fd-add">
+        <input id="fdAddInput" placeholder="@entity + numbers..." maxlength="20">
+        <button class="fd-add-btn" onclick="addFriend()">Add</button>
+      </div>
+      <div id="fdList" style="margin-top:8px"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1163,12 +1216,17 @@ function enablePerfMode() {
   if(pb) pb.style.color = '#a78bfa';
 }
 function dismissPerfPopup() { const e=document.getElementById('perf-popup'); if(e) e.remove(); }
+function updatePerfLabel(){
+  const lbl = document.getElementById('perfLabel');
+  const btn = document.getElementById('perfBtn');
+  if(lbl) lbl.textContent = perfMode ? 'On' : 'Off';
+  if(btn) btn.classList.toggle('on', perfMode);
+}
 function togglePerfMode() {
   if (perfMode) {
     perfMode = false; localStorage.setItem('jee_perf','high');
-    applyPerfMode(); toast('✨ Animations enabled');
-    const pb = document.getElementById('perfBtn'); if(pb) pb.style.color = 'rgba(255,255,255,0.5)';
-  } else { enablePerfMode(); }
+    applyPerfMode(); toast('✨ Animations enabled'); updatePerfLabel();
+  } else { enablePerfMode(); updatePerfLabel(); }
 }
 function applyPerfMode() {
   const bgc = document.getElementById('bgc');
@@ -2277,32 +2335,41 @@ function setHourlyDay(iso){
 }
 
 // ════════════════════════════════
-// ACCOUNT POPUP
+// UNIFIED MENU DRAWER
 // ════════════════════════════════
-let acctOpen = false;
-function toggleAcctPopup(){
-  acctOpen = !acctOpen;
-  document.getElementById('acctPopup').classList.toggle('show', acctOpen);
-  if(acctOpen) document.addEventListener('click', closeAcctOnOutside, true);
-}
-function closeAcctOnOutside(e){
-  const popup = document.getElementById('acctPopup');
-  const btn   = document.getElementById('authBtn');
-  if(popup && !popup.contains(e.target) && !btn.contains(e.target)){
-    popup.classList.remove('show');
-    acctOpen = false;
-    document.removeEventListener('click', closeAcctOnOutside, true);
+let friendsCache = {};
+
+function toggleMenu(){
+  const drawer  = document.getElementById('menuDrawer');
+  const overlay = document.getElementById('menuOverlay');
+  const isOpen  = drawer.classList.contains('open');
+  if(isOpen){ closeMenu(); }
+  else {
+    drawer.classList.add('open');
+    overlay.classList.add('show');
+    renderFriendsList();
   }
 }
+function closeMenu(){
+  document.getElementById('menuDrawer').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('show');
+}
+// keep old names as aliases so nothing else breaks
+function openFriends(){ toggleMenu(); }
+function closeFriends(){ closeMenu(); }
+function toggleAcctPopup(){ toggleMenu(); }
+
 function updateUsernameUI(handle){
   const setEl  = document.getElementById('acctUnameSet');
   const dispEl = document.getElementById('acctUnameDisp');
   const txt    = document.getElementById('acctUnameTxt');
   if(!setEl||!dispEl) return;
+  // handle stored as "entity602" but we display suffix only
+  const suffix = handle ? handle.replace(/^entity/,'') : '';
   if(handle){
     setEl.style.display  = 'none';
     dispEl.style.display = '';
-    if(txt) txt.textContent = handle;
+    if(txt) txt.textContent = suffix;
   } else {
     setEl.style.display  = '';
     dispEl.style.display = 'none';
@@ -2311,14 +2378,18 @@ function updateUsernameUI(handle){
 function showUsernameEdit(){
   document.getElementById('acctUnameSet').style.display  = '';
   document.getElementById('acctUnameDisp').style.display = 'none';
-  document.getElementById('acctUnameInput').focus();
+  const inp = document.getElementById('acctUnameInput');
+  if(inp) inp.focus();
 }
 async function saveUsername(){
   const input = document.getElementById('acctUnameInput');
   const errEl = document.getElementById('acctUnameErr');
   if(!input) return;
-  const val = input.value.trim();
-  const res = await window._setUsername(val);
+  // prefix "entity" to whatever they type
+  const suffix = input.value.trim().replace(/[^0-9a-z]/gi,'');
+  if(!suffix){ if(errEl){errEl.textContent='Enter numbers after @entity';errEl.style.display='';} return; }
+  const full = 'entity' + suffix;
+  const res  = await window._setUsername(full);
   if(res.ok){
     updateUsernameUI(res.handle);
     toast('✅ Username @'+res.handle+' saved!');
@@ -2328,25 +2399,12 @@ async function saveUsername(){
   }
 }
 
-// ════════════════════════════════
-// FRIENDS DRAWER
-// ════════════════════════════════
-let friendsCache = {}; // handle → userData
-
-function openFriends(){
-  document.getElementById('friendsOverlay').classList.add('show');
-  document.getElementById('friendsDrawer').classList.add('open');
-  renderFriendsList();
-}
-function closeFriends(){
-  document.getElementById('friendsOverlay').classList.remove('show');
-  document.getElementById('friendsDrawer').classList.remove('open');
-}
-
 async function addFriend(){
   const input = document.getElementById('fdAddInput');
-  const handle = input.value.trim().toLowerCase();
+  let handle = input.value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
   if(!handle){ toast('Enter a username'); return; }
+  // always prefix entity
+  if(!handle.startsWith('entity')) handle = 'entity' + handle;
   if(!window._currentUid()){ toast('Sign in first to use friends'); return; }
   // check not self
   const mine = await window._getMyUsername();
