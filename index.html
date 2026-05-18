@@ -2460,24 +2460,22 @@ let friendsCache = {}; // uid → user data
 let friendshipsData = {friends:[], incoming:[], outgoing:[]}; // cached from Firestore
 
 async function refreshFriendships(){
-  friendshipsData = await window._loadFriendships();
-  // pre-load handles for any friends we don't have cached
-  for(const f of friendshipsData.friends){
-    const otherUid = f.uids.find(u => u !== window._currentUid());
-    if(otherUid && !friendsCache[otherUid]){
-      // look up by uid from handles — find their handle first
-      // we stored handle in the friendship? no. We need to look it up.
-      // friendships don't store handle; look it up via usernames/{uid}
-      try{
-        const snap = await getDoc(doc(window._db(),'usernames', otherUid));
-        if(snap.exists()){
-          const h = snap.data().handle;
-          const u = await window._findUser(h);
-          if(u) friendsCache[otherUid] = u;
-        }
-      }catch(e){}
+  try {
+    friendshipsData = await window._loadFriendships();
+    for(const f of friendshipsData.friends){
+      const otherUid = f.uids.find(u => u !== window._currentUid());
+      if(otherUid && !friendsCache[otherUid]){
+        try {
+          const snap = await getDoc(doc(window._db(),'usernames', otherUid));
+          if(snap.exists()){
+            const h = snap.data().handle;
+            const u = await window._findUser(h);
+            if(u) friendsCache[otherUid] = u;
+          }
+        }catch(e){}
+      }
     }
-  }
+  } catch(e){ console.error('refreshFriendships:', e); }
 }
 
 function toggleMenu(){
@@ -2562,12 +2560,12 @@ async function addFriend(){
   }
 }
 
-async function renderFriendsSection(){
+window.renderFriendsSection = async function(){
   if(!window._currentUid()){ 
     document.getElementById('fdList').innerHTML = '<div class="fd-empty">Sign in to use friends.</div>';
     return;
   }
-  await refreshFriendships();
+  try { await refreshFriendships(); } catch(e) { console.error('refreshFriendships:',e); }
   renderInbox();
   renderOutgoing();
   renderFriendsList();
