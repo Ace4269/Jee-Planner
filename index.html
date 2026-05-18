@@ -94,19 +94,22 @@ window._setUsername = async function(handle){
   handle = handle.toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);
   if(!handle || handle.length < 3) return {ok:false, err:'Username must be 3–20 chars (letters, numbers, _)'};
   if(!currentUid) return {ok:false, err:'Not signed in'};
-  // check taken
-  const q = query(collection(db,'usernames'), where('handle','==',handle));
-  const snap = await getDocs(q);
-  const taken = snap.docs.some(d => d.data().uid !== currentUid);
-  if(taken) return {ok:false, err:'Username already taken'};
-  // save mapping: usernames/{uid} → {handle, uid, displayName, photoURL}
+  // check if handle is taken — direct doc lookup, no query index needed
+  try{
+    const existSnap = await getDoc(doc(db,'handles', handle));
+    if(existSnap.exists() && existSnap.data().uid !== currentUid)
+      return {ok:false, err:'Username already taken'};
+  }catch(e){}
   const user = auth.currentUser;
-  await setDoc(doc(db,'usernames', currentUid), {
+  const payload = {
     handle, uid: currentUid,
     displayName: user?.displayName || '',
     photoURL:    user?.photoURL    || '',
     updatedAt:   new Date().toISOString()
-  });
+  };
+  // write to BOTH collections
+  await setDoc(doc(db,'usernames', currentUid), payload); // keyed by uid (for "my username")
+  await setDoc(doc(db,'handles',   handle),     payload); // keyed by handle (for friend lookup)
   localStorage.setItem('jee_username', handle);
   return {ok:true, handle};
 };
@@ -126,20 +129,20 @@ window._findUser = async function(handle){
   handle = handle.toLowerCase().trim();
   if(!handle) return null;
   try{
-    const q = query(collection(db,'usernames'), where('handle','==',handle));
-    const snap = await getDocs(q);
-    if(snap.empty) return null;
-    const data = snap.docs[0].data();
-    // fetch their chapter progress
+    // direct doc lookup by handle — no index required
+    const hsnap = await getDoc(doc(db,'handles', handle));
+    if(!hsnap.exists()) return null;
+    const data = hsnap.data();
+    // fetch their chapter progress (read their users/{uid} doc)
     const usnap = await getDoc(doc(db,'users', data.uid));
     return {
-      uid: data.uid,
-      handle: data.handle,
+      uid:         data.uid,
+      handle:      data.handle,
       displayName: data.displayName,
-      photoURL: data.photoURL,
+      photoURL:    data.photoURL,
       chapterData: usnap.exists() ? (usnap.data().chapterData || {}) : {}
     };
-  }catch(e){ console.error(e); return null; }
+  }catch(e){ console.error('_findUser error:', e); return null; }
 };
 
 // Friends stored locally (list of handles)
