@@ -735,6 +735,8 @@ nav{
 /* History */
 .hist-card{padding:22px;margin-top:16px;backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}
 .hist-empty{text-align:center;padding:28px;color:var(--t3);font-size:0.82rem}
+.hist-more{text-align:center;padding:12px;color:var(--acc);font-size:0.75rem;cursor:pointer;background:rgba(0,0,0,0.15);border-radius:8px;margin-top:8px}
+.hist-more:hover{background:rgba(0,0,0,0.25)}
 .sess{padding:11px 13px;border-radius:10px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.05);margin-bottom:7px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(12px) saturate(180%);-webkit-backdrop-filter:blur(12px) saturate(180%)}
 .sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .sinfo{flex:1;min-width:0}
@@ -2041,7 +2043,10 @@ function renderHmap(s){
 function renderHist(s){
   const el=document.getElementById('histList');
   if(!s.length){el.innerHTML='<div class="hist-empty">No sessions yet.<br>Start your first focus session! 🎯</div>';return;}
-  el.innerHTML=[...s].reverse().slice(0,18).map((x,i)=>{
+  const rev=[...s].reverse();
+  const show=rev.slice(0,4);
+  const more=rev.length>4;
+  el.innerHTML=show.map((x,i)=>{
     const d=new Date(x.start);
     return `<div class="sess">
       <div class="sdot" style="background:${x.mode==='focus'?'var(--fh)':'var(--fm)'}"></div>
@@ -2053,6 +2058,7 @@ function renderHist(s){
       <button class="sdel" onclick="delSess(${s.length-1-i})">✕</button>
     </div>`;
   }).join('');
+  if(more)el.innerHTML+=`<div class="hist-more" onclick="openSessionHistoryDrawer()">+ ${rev.length-4} more sessions · click to see all</div>`;
 }
 
 function delSess(i){const s=loadSess();s.splice(i,1);saveSess(s);updateStats();toast('Session deleted');}
